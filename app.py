@@ -41,7 +41,14 @@ Chinese terms:
 
 def get_next_prompt():
     stimulus = stimuli.next_stimulus()
-    return stimulus, format_prompt(stimulus), ""
+    return (
+        stimulus,                 # stimulus_state
+        format_prompt(stimulus),   # prompt_md
+        None,                     # audio_input: clear old recording
+        {},                       # quality_state: clear old quality result
+        "",                       # quality_report
+        "",                       # save_report
+    )
 
 
 def check_quality(audio):
@@ -161,7 +168,14 @@ Workflow:
 
     next_button.click(
         fn=get_next_prompt,
-        outputs=[stimulus_state, prompt_md, save_report],
+        outputs=[
+            stimulus_state,
+            prompt_md,
+            audio_input,
+            quality_state,
+            quality_report,
+            save_report,
+        ],
     )
 
     check_button.click(

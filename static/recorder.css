@@ -1,0 +1,235 @@
+/*
+  Base color behavior.
+
+  We explicitly request a light color scheme for now so the visual appearance
+  stays predictable while prototyping.
+*/
+:root {
+  color-scheme: light;
+}
+
+/*
+  Page-level defaults.
+
+  The body has no margin so the app can use the full browser viewport.
+*/
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/*
+  Main app layout.
+
+  The first row contains metadata. The second row takes the remaining space for
+  the large stimulus and buttons.
+*/
+#app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+/*
+  Metadata panel.
+
+  This is kept reasonably narrow so the form does not stretch awkwardly on
+  wide screens.
+*/
+#metadata-panel {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+#metadata-panel h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+}
+
+/*
+  Four-column metadata form on desktop.
+
+  A media query below collapses this to one column on smaller screens.
+*/
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+/*
+  Labels use grid layout so the label text appears above the input.
+*/
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+/*
+  Form controls.
+
+  These are intentionally plain; the main visual focus should be the stimulus
+  and Start/Next buttons.
+*/
+input,
+select {
+  font-size: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: white;
+}
+
+/*
+  Main recording panel.
+
+  "place-items: center" horizontally centers contents.
+  "align-content: center" vertically centers the group within the remaining
+  available page height.
+*/
+#recording-panel {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  display: grid;
+  place-items: center;
+  align-content: center;
+}
+
+/*
+  Large stimulus display.
+
+  clamp(7rem, 20vw, 14rem) means:
+  - never smaller than 7rem
+  - usually scale with viewport width
+  - never larger than 14rem
+
+  This keeps the stimulus highly visible without becoming absurdly large on a
+  big monitor.
+*/
+
+#stimulus {
+  font-size: clamp(7rem, 20vw, 14rem);
+  font-weight: 900;
+  line-height: 1;
+  min-height: 14rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*
+  Secondary stimulus information.
+
+  This can show IPA, tone-number form, or attested status. During production
+  data collection you may want to simplify or hide this.
+*/
+#stimulus-details {
+  min-height: 3rem;
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: #334155;
+}
+
+#controls {
+  margin-top: 1.5rem;
+}
+
+#controls {
+  margin-top: 1.5rem;
+}
+
+/*
+  Large recording buttons.
+
+  These need to be easy to hit quickly because the subject will repeatedly use
+  the Next button while reading stimuli.
+*/
+.big-btn {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  padding: 2rem 5rem;
+  border-radius: 2rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.20);
+}
+
+/*
+  Blue means "start a session."
+*/
+#start-btn {
+  background: #2563eb;
+  color: white;
+}
+
+/*
+  Green means "continue / accept current stimulus."
+*/
+#next-btn {
+  background: #16a34a;
+  color: white;
+}
+
+/*
+  Disabled state during upload/save operations.
+
+  The cursor changes to "wait" because pressing Next again during upload could
+  cause duplicate or skipped segments.
+*/
+.big-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/*
+  Reusable utility class for hiding elements.
+
+  JavaScript toggles this class to switch between Start and Next.
+*/
+.hidden {
+  display: none;
+}
+
+/*
+  Progress through the stimulus list.
+*/
+#progress {
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/*
+  Status and debugging messages.
+
+  "white-space: pre-line" allows newline characters in status messages to show
+  as line breaks.
+*/
+#status {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  color: #475569;
+  max-width: 900px;
+  white-space: pre-line;
+}
+
+/*
+  Mobile layout.
+
+  Participant metadata switches from four columns to one column so the form is
+  readable on narrow screens.
+*/
+@media (max-width: 800px) {
+  .metadata-grid {
+    grid-template-columns: 1fr;
+  }
+}

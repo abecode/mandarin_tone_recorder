@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mandarin Tone Recorder</title>
+  <!--
+    The browser should scale the interface sensibly on phones, tablets, and
+    laptops. This matters if a subject records on a mobile device.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!--
+    FastAPI serves files in static/ at the /static URL prefix.
+    This stylesheet controls the subject-facing recording interface.
+  -->
+  <link rel="stylesheet" href="{{ url_for('static', path='/recorder.css') }}">
+</head>
+
+
+<body>
+    <!--
+    Main app container.
+
+    The page has two conceptual regions:
+    1. metadata-panel: participant/session information
+    2. recording-panel: large stimulus display and Start/Next controls
+  -->
+    <main id="app">
+    <!--
+      Participant/session metadata.
+
+      These fields are disabled during recording so the metadata cannot change
+      halfway through a session.
+    -->
+    <section id="metadata-panel">
+      <h1>Mandarin Tone Recorder</h1>
+
+      <div class="metadata-grid">
+        <label>
+          Participant ID
+          <input id="participant-id" value="p001">
+        </label>
+
+        <label>
+          Session ID
+          <input id="session-id" value="s001">
+        </label>
+	
+	<label>
+          Speaker type
+          <select id="speaker-type">
+            <option value="native">native</option>
+            <option value="heritage">heritage</option>
+            <option value="learner" selected>learner</option>
+            <option value="other">other</option>
+          </select>
+        </label>
+
+        <label>
+          Mandarin background
+          <input
+            id="mandarin-background"
+            placeholder="e.g., L2 learner, 2 years study"
+          >
+        </label>
+      </div>
+    </section>
+
+    <!--
+      Recording interface.
+
+      The subject mostly interacts with this area. The stimulus is intentionally
+      very large, and the only visible recording controls are Start and Next.
+    -->
+    <section id="recording-panel">
+      <!--
+          The current prompt/stimulus.
+	  
+          recorder.js replaces "Ready" with the pinyin or tone-number stimulus
+          when the user clicks Start.
+	-->
+      <div id="stimulus">Ready</div>
+
+      <!--
+        Smaller explanatory information, such as IPA or tone-number form.
+        This can be removed later if you want a cleaner subject-facing view.
+	-->
+      <div id="stimulus-details"></div>
+
+      <!--
+          Start is shown before recording. Next is shown during recording.
+          The final stimulus changes the Next button text to Finish.
+	-->
+      <div id="controls">
+	<button id="start-btn" class="big-btn">Start</button>
+	<button id="next-btn" class="big-btn hidden">Next</button>
+      </div>
+
+
+      <!--
+        Human-readable progress through the stimulus list.
+      -->
+      <div id="progress">Press Start to begin.</div>
+
+      <!--
+        Status/debug messages, such as "Recording" or "Saved 3 recordings."
+        This is useful during prototyping and can be hidden in production.
+      -->
+      <div id="status"></div>
+    </section>
+    </main>
+
+    <!--
+    The server injects the randomized stimulus list here.
+
+    The "| safe" filter prevents Jinja from escaping the JSON. This is okay
+    because the JSON is generated server-side from our stimulus CSV, not from
+    arbitrary user input.
+  -->
+    <script>
+      window.MTR_STIMULI = {{ stimuli_json | safe }};
+    </script>
+
+    <!--
+    Browser-side recording logic.
+
+    This script uses MediaRecorder to access the microphone and sends one audio
+    blob to the server for each stimulus.
+      -->
+    <script src="{{ url_for('static', path='/recorder.js') }}"></script>
+</body>
+</html>

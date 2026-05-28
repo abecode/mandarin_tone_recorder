@@ -8,7 +8,7 @@
     laptops. This matters if a subject records on a mobile device.
   -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <!--
     FastAPI serves files in static/ at the /static URL prefix.
     This stylesheet controls the subject-facing recording interface.
@@ -36,33 +36,33 @@
       <h1>Mandarin Tone Recorder</h1>
 
       <div class="metadata-grid">
-        <label>
-          Participant ID
-          <input id="participant-id" value="p001">
-        </label>
-
-        <label>
-          Session ID
-          <input id="session-id" value="s001">
-        </label>
-	
 	<label>
-          Speaker type
-          <select id="speaker-type">
-            <option value="native">native</option>
-            <option value="heritage">heritage</option>
-            <option value="learner" selected>learner</option>
-            <option value="other">other</option>
-          </select>
-        </label>
+	  Participant ID
+	  <input id="participant-id" value="p001">
+	</label>
 
-        <label>
-          Mandarin background
-          <input
-            id="mandarin-background"
-            placeholder="e.g., L2 learner, 2 years study"
-          >
-        </label>
+	<label>
+	  Session ID
+	  <input id="session-id" value="s001">
+	</label>
+
+	<label>
+	  Speaker type
+	  <select id="speaker-type">
+	    <option value="native">native</option>
+	    <option value="heritage">heritage</option>
+	    <option value="learner" selected>learner</option>
+	    <option value="other">other</option>
+	  </select>
+	</label>
+
+	<label>
+	  Mandarin background
+	  <input
+	    id="mandarin-background"
+	    placeholder="e.g., L2 learner, 2 years study"
+	  >
+	</label>
       </div>
     </section>
 
@@ -74,37 +74,38 @@
     -->
     <section id="recording-panel">
       <!--
-          The current prompt/stimulus.
-	  
-          recorder.js replaces "Ready" with the pinyin or tone-number stimulus
-          when the user clicks Start.
+	  The current prompt/stimulus.
+
+	  recorder.js replaces "Ready" with the pinyin or tone-number stimulus
+	  when the user clicks Start.
 	-->
       <div id="stimulus">Ready</div>
 
       <!--
-        Smaller explanatory information, such as IPA or tone-number form.
-        This can be removed later if you want a cleaner subject-facing view.
+	Smaller explanatory information, such as IPA or tone-number form.
+	This can be removed later if you want a cleaner subject-facing view.
 	-->
       <div id="stimulus-details"></div>
 
       <!--
-          Start is shown before recording. Next is shown during recording.
-          The final stimulus changes the Next button text to Finish.
+	  Start is shown before recording. Next is shown during recording.
+	  The final stimulus changes the Next button text to Finish.
 	-->
       <div id="controls">
 	<button id="start-btn" class="big-btn">Start</button>
 	<button id="next-btn" class="big-btn hidden">Next</button>
+	<button id="stop-btn" class="stop-btn hidden">Stop Session</button>
       </div>
 
 
       <!--
-        Human-readable progress through the stimulus list.
+	Human-readable progress through the stimulus list.
       -->
       <div id="progress">Press Start to begin.</div>
 
       <!--
-        Status/debug messages, such as "Recording" or "Saved 3 recordings."
-        This is useful during prototyping and can be hidden in production.
+	Status/debug messages, such as "Recording" or "Saved 3 recordings."
+	This is useful during prototyping and can be hidden in production.
       -->
       <div id="status"></div>
     </section>
@@ -116,9 +117,12 @@
     The "| safe" filter prevents Jinja from escaping the JSON. This is okay
     because the JSON is generated server-side from our stimulus CSV, not from
     arbitrary user input.
+
+    max_duration_sec will set timeout for recordings
   -->
     <script>
       window.MTR_STIMULI = {{ stimuli_json | safe }};
+      window.MTR_MAX_DURATION_SEC = {{ max_duration_sec }};
     </script>
 
     <!--

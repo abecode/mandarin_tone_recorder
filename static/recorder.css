@@ -191,6 +191,30 @@ select {
 }
 
 /*
+  Smaller red abort button.
+
+  This is intentionally visually different from Next/Finish. It stops the
+  current session without saving the current unfinished stimulus.
+*/
+.stop-btn {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: 800;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  border: none;
+  cursor: pointer;
+  background: #dc2626;
+  color: white;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  margin-left: 1rem;
+}
+
+.stop-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/*
   Reusable utility class for hiding elements.
 
   JavaScript toggles this class to switch between Start and Next.
@@ -231,5 +255,14 @@ select {
 @media (max-width: 800px) {
   .metadata-grid {
     grid-template-columns: 1fr;
+  }
+
+  #controls {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .stop-btn {
+    margin-left: 0;
   }
 }

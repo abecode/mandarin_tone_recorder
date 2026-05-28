@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 
 from mandarin_tone_recorder.config import (
     AUDIO_DIR,
+    MAX_DURATION_SEC,
     METADATA_CSV,
     STATIC_DIR,
     STIMULI_CSV,
@@ -81,6 +82,7 @@ def create_app() -> FastAPI:
             "recorder.html",
             {
                 "stimuli_json": json.dumps(stimuli, ensure_ascii=False),
+                "max_duration_sec": MAX_DURATION_SEC,
             },
         )
 

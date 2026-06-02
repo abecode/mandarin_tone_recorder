@@ -187,8 +187,8 @@ def save_recording_chunk(
     chunk: RecordingChunk,
     *,
     audio_dir: Path,
-    metadata_csv: Path,
     target_sample_rate: int = 16000,
+    recording_id: str | None = None,
 ) -> dict[str, Any]:
     """Save one recording chunk and append its metadata.
 
@@ -222,7 +222,7 @@ def save_recording_chunk(
     session_audio_dir = Path(audio_dir) / participant_id / session_id
     session_audio_dir.mkdir(parents=True, exist_ok=True)
 
-    recording_id = str(uuid.uuid4())
+    recording_id = recording_id or str(uuid.uuid4())
     ext = extension_from_mime(chunk.mime_type)
 
     stimulus_label = (
@@ -248,56 +248,9 @@ def save_recording_chunk(
 
     duration_sec = (chunk.ended_at_ms - chunk.started_at_ms) / 1000.0
 
-    row = {
-        "recording_id": recording_id,
-        "participant_id": participant_id,
-        "session_id": session_id,
-        "speaker_type": chunk.speaker_type,
-        "mandarin_background": chunk.mandarin_background,
-
-        "stimulus_index": chunk.stimulus_index,
-        "stimulus_id": chunk.stimulus_id,
-        "onset": chunk.stimulus.get("onset", ""),
-        "medial": chunk.stimulus.get("medial", ""),
-        "nucleus": chunk.stimulus.get("nucleus", ""),
-        "coda": chunk.stimulus.get("coda", ""),
-        "ipa": chunk.stimulus.get("ipa", ""),
-        "pinyin": chunk.stimulus.get("pinyin", ""),
-        "ascii": chunk.stimulus.get("ascii", ""),
-        "tone": chunk.stimulus.get("tone", ""),
-        "is_attested": chunk.stimulus.get("is_attested", ""),
-
-        "started_at_ms": chunk.started_at_ms,
-        "ended_at_ms": chunk.ended_at_ms,
-        "duration_sec": round(duration_sec, 3),
-        "mime_type": chunk.mime_type,
-
-        "raw_audio_path": str(raw_path),
-        "wav_audio_path": str(wav_path) if wav_path else "",
-        "target_sample_rate": target_sample_rate if wav_path else "",
-
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    metadata_csv = Path(metadata_csv)
-    metadata_csv.parent.mkdir(parents=True, exist_ok=True)
-
-    with _metadata_lock:
-        file_exists = metadata_csv.exists()
-
-        with metadata_csv.open("a", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=list(row.keys()))
-
-            if not file_exists:
-                writer.writeheader()
-
-            writer.writerow(row)
-
     return {
         "recording_id": recording_id,
         "raw_audio_path": str(raw_path),
         "wav_audio_path": str(wav_path) if wav_path else None,
-        "metadata_csv": str(metadata_csv),
-        "row": row,
     }
 

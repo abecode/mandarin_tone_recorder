@@ -63,6 +63,24 @@
 	    placeholder="e.g., L2 learner, 2 years study"
 	  >
 	</label>
+
+	<label>
+	  Experiment condition
+	  <select id="experiment-condition">
+	    <option value="tone_bearing" selected>tone-bearing: tones 1–4</option>
+	    <option value="tone_unspecified">tone-unspecified: unaccented prompt</option>
+	  </select>
+	</label>
+	
+	<label>
+	  Target duration
+	  <select id="target-duration-sec">
+	    <option value="300">5 minutes</option>
+	    <option value="600" selected>10 minutes</option>
+	    <option value="900">15 minutes</option>
+	    <option value="1200">20 minutes</option>
+	  </select>
+	</label>
       </div>
     </section>
 
@@ -121,8 +139,8 @@
     max_duration_sec will set timeout for recordings
   -->
     <script>
-      window.MTR_STIMULI = {{ stimuli_json | safe }};
       window.MTR_MAX_DURATION_SEC = {{ max_duration_sec }};
+      window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC = {{ default_session_target_duration_sec }};
     </script>
 
     <!--

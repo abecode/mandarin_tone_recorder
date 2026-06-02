@@ -1,18 +1,58 @@
 /**
  * Browser-side recording interface for the Mandarin Tone Recorder.
  *
- * This file owns the subject-facing interaction:
+ * This version uses a server-driven stimulus workflow:
  *
- *   Start -> request microphone access, show first stimulus, start recording
- *   Next  -> save current stimulus segment and advance
- *   Timeout -> discard current segment and ask the subject to try again
- *   Try Again -> rerecord the same stimulus
- *   Stop Session -> abort the session without saving the current segment
+ *   Start
+ *     -> create a session on the server
+ *     -> receive first stimulus
+ *     -> start recording
+ *
+ *   Next / Finish
+ *     -> upload current recording attempt
+ *     -> server saves attempt
+ *     -> server chooses next stimulus
+ *     -> browser displays next stimulus
+ *
+ *   Timeout
+ *     -> discard current audio locally
+ *     -> notify server of a timed-out attempt
+ *     -> server returns the same stimulus for retry
+ *
+ *   Stop Session
+ *     -> abort the server-side session
+ *     -> discard current unfinished recording
+ *
+ * The browser no longer receives all stimuli at page load. The server is the
+ * source of truth for session state and stimulus assignment.
  */
 
-const stimuli = window.MTR_STIMULI || [];
-const maxDurationSec = window.MTR_MAX_DURATION_SEC || 3.0;
+
+/* -------------------------------------------------------------------------- */
+/* Configuration injected by recorder.html                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Maximum allowed duration for one stimulus recording.
+ *
+ * This is injected by the FastAPI/Jinja template from config.MAX_DURATION_SEC.
+ */
+const maxDurationSec = window.MTR_MAX_DURATION_SEC || 7.0;
 const maxDurationMs = maxDurationSec * 1000;
+
+/**
+ * Default target session duration.
+ *
+ * This is a soft target, not a hard timeout. The backend will tell us when the
+ * target has been reached after an upload.
+ */
+const defaultSessionTargetDurationSec =
+  window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC || 600;
+
+
+/* -------------------------------------------------------------------------- */
+/* DOM elements                                                               */
+/* -------------------------------------------------------------------------- */
 
 // Main display elements.
 const stimulusEl = document.getElementById("stimulus");
@@ -27,9 +67,17 @@ const stopBtn = document.getElementById("stop-btn");
 
 // Participant/session metadata fields.
 const participantIdEl = document.getElementById("participant-id");
-const sessionIdEl = document.getElementById("session-id");
 const speakerTypeEl = document.getElementById("speaker-type");
 const mandarinBackgroundEl = document.getElementById("mandarin-background");
+
+// New server-driven-session fields.
+const experimentConditionEl = document.getElementById("experiment-condition");
+const targetDurationSecEl = document.getElementById("target-duration-sec");
+
+
+/* -------------------------------------------------------------------------- */
+/* Browser recording state                                                    */
+/* -------------------------------------------------------------------------- */
 
 // Browser microphone stream.
 let stream = null;
@@ -40,19 +88,78 @@ let recorder = null;
 // Chosen browser-supported MIME type, for example "audio/webm;codecs=opus".
 let mimeType = "";
 
-// Current position in the stimulus list.
-let currentIndex = -1;
+// Timer that enforces max duration for one stimulus recording.
+let segmentTimeoutId = null;
+
+// Safety token used to ignore late async events from old recorder/session state.
+let sessionGeneration = 0;
+
+
+/* -------------------------------------------------------------------------- */
+/* Server/session state                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Server-generated session code.
+ *
+ * This is returned by POST /api/sessions and then used in subsequent calls:
+ *
+ *   /api/sessions/{sessionCode}/attempts
+ *   /api/sessions/{sessionCode}/timeouts
+ *   /api/sessions/{sessionCode}/abort
+ *   /api/sessions/{sessionCode}/finish
+ */
+let sessionCode = null;
+
+/**
+ * Current stimulus returned by the server.
+ *
+ * Shape expected:
+ *
+ * {
+ *   stimulus_id: "...",
+ *   display_text: "...",
+ *   experiment_condition: "tone_bearing",
+ *   target_tone: 1,
+ *   ascii: "...",
+ *   pinyin_base: "...",
+ *   initial: "...",
+ *   rhyme: "...",
+ *   onset: "...",
+ *   medial: "...",
+ *   nucleus: "...",
+ *   coda: "...",
+ *   ipa_base: "...",
+ *   is_attested: true
+ * }
+ */
+let currentStimulusData = null;
+
+/**
+ * One-based counter for the number of stimuli shown in the current session.
+ *
+ * This is not a database primary key. It is a display/order counter for the
+ * current session.
+ */
+let currentIndex = 0;
 
 // Browser timestamp for the beginning of the current stimulus segment.
 let segmentStartMs = null;
 
-// Count of successfully uploaded chunks in the current session.
+// Count of successfully uploaded accepted recordings in the current session.
 let uploadCount = 0;
 
-// Timer that enforces max duration for one stimulus recording.
-let segmentTimeoutId = null;
 
-// Current app mode. This keeps button behavior explicit.
+/* -------------------------------------------------------------------------- */
+/* UI mode state                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Current app mode.
+ *
+ * Keeping this explicit prevents the Next button from doing the wrong thing
+ * during saving, timeout, or abort states.
+ */
 let currentMode = "ready";
 // possible values:
 // "ready"
@@ -63,12 +170,12 @@ let currentMode = "ready";
 // "aborted"
 
 // If true, the next MediaRecorder blob is discarded instead of uploaded.
-// Used for timeout and abort behavior.
 let discardNextBlob = false;
 
-// help maintain state in spite of async.  This will be updated whenever
-// recording is aborted, either through timeout or stop button
-let sessionGeneration = 0;
+
+/* -------------------------------------------------------------------------- */
+/* Small UI helpers                                                           */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Display a status message for the subject/researcher.
@@ -81,7 +188,7 @@ function setStatus(message) {
 
 
 /**
- * Display progress through the stimulus list.
+ * Display progress through the recording session.
  *
  * @param {string} message - Message to show in the progress area.
  */
@@ -91,7 +198,168 @@ function setProgress(message) {
 
 
 /**
+ * Disable participant/session form inputs during recording.
+ *
+ * This prevents metadata from changing halfway through a session.
+ */
+function disableMetadataInputs() {
+  participantIdEl.disabled = true;
+  speakerTypeEl.disabled = true;
+  mandarinBackgroundEl.disabled = true;
+  experimentConditionEl.disabled = true;
+  targetDurationSecEl.disabled = true;
+}
+
+
+/**
+ * Re-enable participant/session form inputs after a session finishes or aborts.
+ */
+function enableMetadataInputs() {
+  participantIdEl.disabled = false;
+  speakerTypeEl.disabled = false;
+  mandarinBackgroundEl.disabled = false;
+  experimentConditionEl.disabled = false;
+  targetDurationSecEl.disabled = false;
+}
+
+
+/**
+ * Reset the visible UI to the initial ready state.
+ *
+ * This does not create or abort server sessions. It only changes the display.
+ */
+function showReadyUi() {
+  stimulusEl.textContent = "Ready";
+  detailsEl.textContent = "";
+  setProgress("Press Start to begin.");
+  setStatus("");
+
+  nextBtn.classList.add("hidden");
+  stopBtn.classList.add("hidden");
+
+  startBtn.textContent = "Start";
+  startBtn.disabled = false;
+  startBtn.classList.remove("hidden");
+}
+
+
+/**
+ * Show the active recording controls.
+ */
+function showRecordingControls() {
+  startBtn.classList.add("hidden");
+  nextBtn.classList.remove("hidden");
+  stopBtn.classList.remove("hidden");
+
+  nextBtn.disabled = false;
+  stopBtn.disabled = false;
+}
+
+
+/**
+ * Show the completed/finished UI.
+ *
+ * @param {string} message - Status message to show after finishing.
+ */
+function showFinishedUi(message) {
+  stimulusEl.textContent = "Done";
+  detailsEl.textContent = "";
+
+  setProgress("Session complete.");
+  setStatus(message || `Saved ${uploadCount} recording(s).`);
+
+  nextBtn.classList.add("hidden");
+  stopBtn.classList.add("hidden");
+
+  startBtn.textContent = "Start Again";
+  startBtn.disabled = false;
+  startBtn.classList.remove("hidden");
+
+  enableMetadataInputs();
+}
+
+
+/**
+ * Show the aborted/stopped UI.
+ *
+ * @param {string} message - Status message to show after aborting.
+ */
+function showAbortedUi(message) {
+  stimulusEl.textContent = "Stopped";
+  detailsEl.textContent = "";
+
+  setProgress("Session stopped.");
+  setStatus(message || "Session stopped. Current incomplete stimulus was not saved.");
+
+  nextBtn.classList.add("hidden");
+  stopBtn.classList.add("hidden");
+
+  startBtn.textContent = "Start Again";
+  startBtn.disabled = false;
+  startBtn.classList.remove("hidden");
+
+  enableMetadataInputs();
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Stimulus rendering                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Render the current server-provided stimulus.
+ *
+ * Unlike the old version, this function does not index into a local stimulus
+ * list. It only displays currentStimulusData, which came from the server.
+ */
+function showCurrentStimulus() {
+  if (!currentStimulusData) {
+    stimulusEl.textContent = "Ready";
+    detailsEl.textContent = "";
+    setProgress("No stimulus loaded.");
+    return;
+  }
+
+  stimulusEl.textContent = currentStimulusData.display_text || "";
+
+  const parts = [];
+
+  if (currentStimulusData.target_tone !== null &&
+      currentStimulusData.target_tone !== undefined) {
+    parts.push(`tone: ${currentStimulusData.target_tone}`);
+  }
+
+  if (currentStimulusData.initial || currentStimulusData.rhyme) {
+    const initial = currentStimulusData.initial || "∅";
+    const rhyme = currentStimulusData.rhyme || "";
+    parts.push(`initial/rhyme: ${initial} + ${rhyme}`);
+  }
+
+  if (currentStimulusData.ipa_base) {
+    parts.push(`IPA: /${currentStimulusData.ipa_base}/`);
+  }
+
+  if (currentStimulusData.is_attested !== undefined) {
+    parts.push(`attested: ${currentStimulusData.is_attested}`);
+  }
+
+  detailsEl.textContent = parts.join("   ·   ");
+
+  setProgress(`Stimulus ${currentIndex}`);
+
+  nextBtn.textContent = "Next";
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Browser MediaRecorder helpers                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
  * Pick the best audio MIME type supported by this browser.
+ *
+ * Browser support differs. Chrome typically supports WebM/Opus, Firefox may
+ * support Ogg/Opus, and Safari may prefer MP4-like audio.
  *
  * @returns {string} A MediaRecorder-compatible MIME type, or an empty string
  *   to let the browser choose its default.
@@ -111,143 +379,6 @@ function chooseMimeType() {
   }
 
   return "";
-}
-
-
-/**
- * Get the currently displayed stimulus object.
- *
- * @returns {Object | undefined} The current stimulus, or undefined if no
- *   session has started.
- */
-function currentStimulus() {
-  return stimuli[currentIndex];
-}
-
-
-/**
- * Choose the main display text for a stimulus.
- *
- * @param {Object} stimulus - Stimulus row object.
- * @returns {string} Text to display in the large stimulus area.
- */
-function stimulusDisplayText(stimulus) {
-  if (!stimulus) {
-    return "";
-  }
-
-  const pinyin = stimulus.pinyin || "";
-  const ascii = stimulus.ascii || "";
-  const tone = stimulus.tone || "";
-
-  return pinyin || `${ascii}${tone}` || stimulus.stimulus_id || "";
-}
-
-
-/**
- * Render the current stimulus and associated details.
- */
-function showCurrentStimulus() {
-  const stim = currentStimulus();
-
-  stimulusEl.textContent = stimulusDisplayText(stim);
-
-  const parts = [];
-
-  if (stim.ascii || stim.tone) {
-    parts.push(`tone-number: ${stim.ascii || ""}${stim.tone || ""}`);
-  }
-
-  if (stim.ipa) {
-    parts.push(`IPA: /${stim.ipa}/`);
-  }
-
-  if (stim.is_attested !== undefined && stim.is_attested !== "") {
-    parts.push(`attested: ${stim.is_attested}`);
-  }
-
-  detailsEl.textContent = parts.join("   ·   ");
-
-  setProgress(`Stimulus ${currentIndex + 1} of ${stimuli.length}`);
-
-  nextBtn.textContent = currentIndex === stimuli.length - 1 ? "Finish" : "Next";
-}
-
-
-/**
- * Read participant/session metadata from the form.
- *
- * @returns {Object} Metadata values from the form.
- */
-function getMetadata() {
-  return {
-    participantId: participantIdEl.value || "anonymous",
-    sessionId: sessionIdEl.value || "default_session",
-    speakerType: speakerTypeEl.value || "",
-    mandarinBackground: mandarinBackgroundEl.value || ""
-  };
-}
-
-
-/**
- * Upload one audio blob to the backend for the given stimulus.
- *
- * @param {Blob} blob - Audio data produced by MediaRecorder.
- * @param {Object} stim - Stimulus object associated with this audio.
- * @param {number} indexForFile - One-based stimulus index within the session.
- * @param {number} startedAtMs - Browser timestamp when segment began.
- * @param {number} endedAtMs - Browser timestamp when segment ended.
- * @returns {Promise<Object>} JSON response from the backend.
- */
-async function uploadBlobForStimulus(blob, stim, indexForFile, startedAtMs, endedAtMs) {
-  const metadata = getMetadata();
-  const form = new FormData();
-
-  form.append("file", blob, `chunk_${indexForFile}.webm`);
-  form.append("participant_id", metadata.participantId);
-  form.append("session_id", metadata.sessionId);
-  form.append("speaker_type", metadata.speakerType);
-  form.append("mandarin_background", metadata.mandarinBackground);
-
-  form.append("stimulus_index", String(indexForFile));
-  form.append("stimulus_id", String(stim.stimulus_id));
-  form.append("started_at_ms", String(startedAtMs));
-  form.append("ended_at_ms", String(endedAtMs));
-  form.append("mime_type", mimeType || blob.type || "application/octet-stream");
-
-  const response = await fetch("/api/recordings/chunk", {
-    method: "POST",
-    body: form
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Upload failed: ${response.status} ${text}`);
-  }
-
-  return await response.json();
-}
-
-
-/**
- * Disable participant/session form inputs during recording.
- */
-function disableMetadataInputs() {
-  participantIdEl.disabled = true;
-  sessionIdEl.disabled = true;
-  speakerTypeEl.disabled = true;
-  mandarinBackgroundEl.disabled = true;
-}
-
-
-/**
- * Re-enable participant/session form inputs after a session finishes or aborts.
- */
-function enableMetadataInputs() {
-  participantIdEl.disabled = false;
-  sessionIdEl.disabled = false;
-  speakerTypeEl.disabled = false;
-  mandarinBackgroundEl.disabled = false;
 }
 
 
@@ -280,82 +411,233 @@ function startSegmentTimer() {
 /**
  * Start MediaRecorder for the currently displayed stimulus.
  *
- * This is used both for the initial recording and for retrying a timed-out
- * stimulus.
+ * This function is called:
+ *
+ * - after a session is created and first stimulus is shown
+ * - after a successful upload and next stimulus is shown
+ * - after timeout when the user clicks Try Again
  */
 function startRecordingCurrentStimulus() {
+  if (!stream) {
+    setStatus("Microphone stream is not available.");
+    return;
+  }
+
+  if (!currentStimulusData) {
+    setStatus("No current stimulus is available.");
+    return;
+  }
+
   discardNextBlob = false;
   segmentStartMs = Date.now();
   currentMode = "recording";
 
   const options = mimeType ? { mimeType } : undefined;
-
-  // bind recorder to current sessionGeneration
   const recorderGeneration = sessionGeneration;
+
   recorder = new MediaRecorder(stream, options);
+
   recorder.ondataavailable = (event) => {
     handleDataAvailable(event, recorderGeneration);
   };
 
   recorder.onstop = () => {
-    // Do not stop the microphone stream here. We often stop the recorder only
-    // to end one timed-out segment and then rerecord the same stimulus.
+    // Intentionally empty.
+    //
+    // We often stop the recorder to discard a timed-out segment and then
+    // restart recording for the same stimulus. The microphone stream itself is
+    // stopped only when the whole session finishes or aborts.
   };
 
   recorder.start();
   startSegmentTimer();
 
-  nextBtn.disabled = false;
-  stopBtn.disabled = false;
+  showRecordingControls();
 
-  nextBtn.textContent = currentIndex === stimuli.length - 1 ? "Finish" : "Next";
+  nextBtn.textContent = "Next";
+  setStatus(`Recording. Maximum duration per item: ${maxDurationSec.toFixed(1)} seconds.`);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Server API helpers                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Create a recording session on the server.
+ *
+ * The server returns a session_code and the first stimulus. This replaces the
+ * old approach of loading the entire stimulus list into the browser.
+ *
+ * @returns {Promise<Object>} CreateSessionResponse from the server.
+ */
+async function createSessionOnServer() {
+  const participantCode = participantIdEl.value || "anonymous";
+  const speakerType = speakerTypeEl.value || "learner";
+  const mandarinBackground = mandarinBackgroundEl.value || "";
+  const experimentCondition = experimentConditionEl.value || "tone_bearing";
+  const targetDurationSec =
+    Number(targetDurationSecEl.value) || defaultSessionTargetDurationSec;
+
+  const response = await fetch("/api/sessions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      participant_code: participantCode,
+      speaker_type: speakerType,
+      mandarin_background: mandarinBackground,
+      experiment_condition: experimentCondition,
+      target_duration_sec: targetDurationSec
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Could not create session: ${response.status} ${text}`);
+  }
+
+  return await response.json();
 }
 
 
 /**
- * Handle per-stimulus timeout.
+ * Upload one accepted audio blob to the current server session.
  *
- * The too-long recording is deliberately discarded. The same stimulus stays on
- * screen, and the user clicks Try Again when ready.
+ * The server saves the recording attempt and returns the next stimulus.
+ *
+ * @param {Blob} blob - Audio data produced by MediaRecorder.
+ * @param {number} startedAtMs - Browser timestamp when the segment began.
+ * @param {number} endedAtMs - Browser timestamp when the segment ended.
+ * @returns {Promise<Object>} AttemptResponse from the server.
  */
-function handleSegmentTimeout() {
-  if (currentMode !== "recording") {
+async function uploadAcceptedAttempt(blob, startedAtMs, endedAtMs) {
+  if (!sessionCode) {
+    throw new Error("No active session_code.");
+  }
+
+  if (!currentStimulusData) {
+    throw new Error("No current stimulus.");
+  }
+
+  const form = new FormData();
+
+  form.append("file", blob, `chunk_${currentIndex}.webm`);
+  form.append("stimulus_id", currentStimulusData.stimulus_id);
+  form.append("stimulus_index", String(currentIndex));
+  form.append("started_at_ms", String(startedAtMs));
+  form.append("ended_at_ms", String(endedAtMs));
+  form.append("mime_type", mimeType || blob.type || "application/octet-stream");
+
+  const response = await fetch(`/api/sessions/${sessionCode}/attempts`, {
+    method: "POST",
+    body: form
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Upload failed: ${response.status} ${text}`);
+  }
+
+  return await response.json();
+}
+
+
+/**
+ * Tell the server that the current stimulus timed out.
+ *
+ * The server records a timed_out attempt and returns the same stimulus for
+ * retry. No audio is uploaded for timeout events.
+ *
+ * @returns {Promise<Object>} AttemptResponse from the server.
+ */
+async function recordTimeoutOnServer() {
+  if (!sessionCode || !currentStimulusData) {
+    return null;
+  }
+
+  const response = await fetch(`/api/sessions/${sessionCode}/timeouts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      stimulus_id: currentStimulusData.stimulus_id,
+      stimulus_index: currentIndex,
+      duration_sec: maxDurationSec
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Could not record timeout: ${response.status} ${text}`);
+  }
+
+  return await response.json();
+}
+
+
+/**
+ * Tell the server that the current session was aborted.
+ *
+ * This is called when the user clicks Stop Session. Already-saved attempts
+ * remain saved, but the current unfinished stimulus is discarded.
+ */
+async function abortSessionOnServer() {
+  if (!sessionCode) {
     return;
   }
 
-  clearSegmentTimer();
+  const response = await fetch(`/api/sessions/${sessionCode}/abort`, {
+    method: "POST"
+  });
 
-  currentMode = "timed_out";
-  discardNextBlob = true;
-
-  if (recorder && recorder.state === "recording") {
-    recorder.stop();
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Could not abort session: ${response.status} ${text}`);
   }
-
-  setProgress("Timed out.");
-  setStatus(
-    `This recording exceeded ${maxDurationSec.toFixed(1)} seconds. ` +
-    "Click Try Again to rerecord the same stimulus."
-  );
-
-  nextBtn.textContent = "Try Again";
-  nextBtn.disabled = false;
-  stopBtn.disabled = false;
 }
 
+
+/**
+ * Tell the server that the current session finished normally.
+ *
+ * This is useful when the participant chooses to end after reaching the target
+ * duration, or when no eligible stimuli remain.
+ */
+async function finishSessionOnServer() {
+  if (!sessionCode) {
+    return;
+  }
+
+  const response = await fetch(`/api/sessions/${sessionCode}/finish`, {
+    method: "POST"
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Could not finish session: ${response.status} ${text}`);
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Session lifecycle                                                          */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Start a new recording session.
  *
- * This requests microphone permission, initializes session state, shows the
- * first stimulus, and starts recording immediately.
+ * This function:
+ *
+ * 1. Checks browser microphone support.
+ * 2. Requests microphone permission.
+ * 3. Creates a session on the server.
+ * 4. Receives the first stimulus.
+ * 5. Starts recording immediately.
  */
 async function startSession() {
-  if (!stimuli.length) {
-    setStatus("No stimuli were loaded.");
-    return;
-  }
-
   if (!window.isSecureContext) {
     setStatus("Microphone access requires a secure context. Use localhost or HTTPS.");
     return;
@@ -382,37 +664,145 @@ async function startSession() {
     return;
   }
 
+  setStatus("Creating session...");
+
+  let sessionInfo;
+  try {
+    sessionInfo = await createSessionOnServer();
+  } catch (err) {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+
+    startBtn.disabled = false;
+    setStatus(err.message);
+    return;
+  }
+
   sessionGeneration += 1;
 
-  mimeType = chooseMimeType();
-  currentIndex = 0;
+  sessionCode = sessionInfo.session_code;
+  currentStimulusData = sessionInfo.first_stimulus;
+  currentIndex = 1;
   uploadCount = 0;
+
+  mimeType = chooseMimeType();
   currentMode = "recording";
   discardNextBlob = false;
 
   disableMetadataInputs();
-
-  startBtn.classList.add("hidden");
-  nextBtn.classList.remove("hidden");
-  stopBtn.classList.remove("hidden");
-
   showCurrentStimulus();
   startRecordingCurrentStimulus();
-
-  setStatus(`Recording. Maximum duration per item: ${maxDurationSec.toFixed(1)} seconds.`);
 }
 
+
+/**
+ * Finish the current recording session normally.
+ *
+ * This is called when the backend reports that the session is done or when we
+ * decide to end the session after target duration has been reached.
+ */
+async function finishSession(message) {
+  currentMode = "finished";
+  clearSegmentTimer();
+
+  sessionGeneration += 1;
+
+  const recorderToStop = recorder;
+  recorder = null;
+
+  if (recorderToStop && recorderToStop.state === "recording") {
+    recorderToStop.stop();
+  }
+
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+
+  try {
+    await finishSessionOnServer();
+  } catch (err) {
+    console.error(err);
+  }
+
+  showFinishedUi(message || `Saved ${uploadCount} recording(s).`);
+
+  sessionCode = null;
+  currentStimulusData = null;
+  currentIndex = 0;
+}
+
+
+/**
+ * Abort the current session without saving the current unfinished segment.
+ *
+ * Already-saved previous attempts remain saved. The current in-progress
+ * segment is discarded locally.
+ *
+ * @param {string} message - Message to show after aborting.
+ */
+async function abortSession(message) {
+  currentMode = "aborted";
+  clearSegmentTimer();
+
+  sessionGeneration += 1;
+  discardNextBlob = true;
+
+  const recorderToStop = recorder;
+  recorder = null;
+
+  if (recorderToStop && recorderToStop.state === "recording") {
+    recorderToStop.stop();
+  }
+
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+
+  try {
+    await abortSessionOnServer();
+  } catch (err) {
+    console.error(err);
+    // We still show the local aborted UI. The console error is enough for now
+    // during prototyping.
+  }
+
+  showAbortedUi(message || "Session stopped. Current incomplete stimulus was not saved.");
+
+  sessionCode = null;
+  currentStimulusData = null;
+  currentIndex = 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Recording attempt lifecycle                                                */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Handle an audio blob produced by MediaRecorder.
  *
  * Normal path:
- *   requestData -> blob -> upload -> advance
+ *
+ *   Next clicked
+ *     -> recorder.requestData()
+ *     -> dataavailable fires
+ *     -> upload blob
+ *     -> server returns next stimulus
+ *     -> record next stimulus
  *
  * Timeout/abort path:
- *   stop -> blob -> discard
+ *
+ *   recorder.stop()
+ *     -> dataavailable may fire
+ *     -> discard blob
  *
  * @param {BlobEvent} event - MediaRecorder event containing the audio blob.
+ * @param {number} recorderGeneration - Generation token captured when recorder
+ *   was created.
  */
 async function handleDataAvailable(event, recorderGeneration) {
   if (recorderGeneration !== sessionGeneration) {
@@ -431,8 +821,11 @@ async function handleDataAvailable(event, recorderGeneration) {
     return;
   }
 
-  const stim = currentStimulus();
-  const indexForFile = currentIndex + 1;
+  if (currentMode !== "saving") {
+    // If we somehow get a blob outside the normal saving state, do not upload.
+    return;
+  }
+
   const startedAtMs = segmentStartMs;
   const endedAtMs = Date.now();
 
@@ -441,26 +834,33 @@ async function handleDataAvailable(event, recorderGeneration) {
   });
 
   try {
-    await uploadBlobForStimulus(
-      blob,
-      stim,
-      indexForFile,
-      startedAtMs,
-      endedAtMs
-    );
+    const result = await uploadAcceptedAttempt(blob, startedAtMs, endedAtMs);
 
     uploadCount += 1;
-    setStatus(`Saved ${uploadCount} recording(s).`);
 
-    const wasFinalStimulus = currentIndex === stimuli.length - 1;
-
-    if (wasFinalStimulus) {
-      finishSession();
+    if (result.session_done) {
+      await finishSession(result.message || `Saved ${uploadCount} recording(s).`);
       return;
     }
 
+    if (!result.next_stimulus) {
+      await finishSession("No next stimulus was returned.");
+      return;
+    }
+
+    currentStimulusData = result.next_stimulus;
     currentIndex += 1;
+
     showCurrentStimulus();
+
+    if (result.target_duration_reached) {
+      setStatus(
+        "Target time reached. You may stop the session now, or continue recording."
+      );
+    } else {
+      setStatus(`Saved ${uploadCount} recording(s).`);
+    }
+
     startRecordingCurrentStimulus();
   } catch (err) {
     console.error(err);
@@ -485,7 +885,7 @@ async function handleDataAvailable(event, recorderGeneration) {
 function nextOrFinish() {
   if (currentMode === "timed_out") {
     setStatus("Recording retry.");
-    setProgress(`Stimulus ${currentIndex + 1} of ${stimuli.length}`);
+    setProgress(`Stimulus ${currentIndex}`);
     startRecordingCurrentStimulus();
     return;
   }
@@ -505,93 +905,72 @@ function nextOrFinish() {
   nextBtn.disabled = true;
   stopBtn.disabled = true;
 
-  if (currentIndex === stimuli.length - 1) {
-    setProgress("Saving final recording...");
-  } else {
-    setProgress("Saving and advancing...");
-  }
+  setProgress("Saving and advancing...");
 
   recorder.requestData();
 }
 
 
 /**
- * Finish the current recording session normally.
+ * Handle per-stimulus timeout.
+ *
+ * The too-long recording is discarded. The server is notified of a timed-out
+ * attempt. The same stimulus remains on screen for rerecording.
  */
-function finishSession() {
-  currentMode = "finished";
-  clearSegmentTimer();
-
-  if (recorder && recorder.state === "recording") {
-    recorder.stop();
+async function handleSegmentTimeout() {
+  if (currentMode !== "recording") {
+    return;
   }
 
-  if (stream) {
-    stream.getTracks().forEach((track) => track.stop());
-    stream = null;
-  }
-
-  stimulusEl.textContent = "Done";
-  detailsEl.textContent = "";
-  setProgress("Session complete.");
-  setStatus(`Saved ${uploadCount} chunks.`);
-
-  nextBtn.classList.add("hidden");
-  stopBtn.classList.add("hidden");
-
-  startBtn.textContent = "Start Again";
-  startBtn.disabled = false;
-  startBtn.classList.remove("hidden");
-
-  enableMetadataInputs();
-}
-
-
-/**
- * Abort the current session without saving the current unfinished segment.
- *
- * Already-saved previous stimuli remain saved. The current in-progress segment
- * is discarded.
- *
- * @param {string} message - Message to show after aborting.
- */
-function abortSession(message) {
-  sessionGeneration += 1;
-
-  currentMode = "aborted";
   clearSegmentTimer();
 
+  currentMode = "timed_out";
   discardNextBlob = true;
 
-  if (recorder && recorder.state === "recording") {
-    recorder.stop();
+  const recorderToStop = recorder;
+  recorder = null;
+
+  if (recorderToStop && recorderToStop.state === "recording") {
+    recorderToStop.stop();
   }
 
-  if (stream) {
-    stream.getTracks().forEach((track) => track.stop());
-    stream = null;
+  try {
+    const result = await recordTimeoutOnServer();
+
+    if (result && result.next_stimulus) {
+      currentStimulusData = result.next_stimulus;
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus(
+      `Timed out, but could not record timeout on server: ${err.message}`
+    );
   }
 
-  currentIndex = -1;
-  stimulusEl.textContent = "Stopped";
-  detailsEl.textContent = "";
-  setProgress("Session stopped.");
-  setStatus(message || "Session stopped. The current stimulus was not saved. Recordings from previous stimuli remain saved");
+  setProgress("Timed out.");
+  setStatus(
+    `This recording exceeded ${maxDurationSec.toFixed(1)} seconds. ` +
+    "Click Try Again to rerecord the same stimulus."
+  );
 
-  nextBtn.classList.add("hidden");
-  stopBtn.classList.add("hidden");
-
-  startBtn.textContent = "Start Again";
-  startBtn.disabled = false;
-  startBtn.classList.remove("hidden");
-
-  enableMetadataInputs();
+  nextBtn.textContent = "Try Again";
+  nextBtn.disabled = false;
+  stopBtn.disabled = false;
 }
 
 
-// Wire the visible buttons to the recording workflow.
+/* -------------------------------------------------------------------------- */
+/* Event listeners                                                            */
+/* -------------------------------------------------------------------------- */
+
 startBtn.addEventListener("click", startSession);
+
 nextBtn.addEventListener("click", nextOrFinish);
+
 stopBtn.addEventListener("click", () => {
   abortSession("Session stopped. Current incomplete stimulus was not saved.");
 });
+
+
+// Show a clean initial state when the script loads.
+showReadyUi();

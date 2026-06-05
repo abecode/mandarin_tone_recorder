@@ -70,3 +70,11 @@ class TimeoutAttemptRequest(SQLModel):
     stimulus_id: str
     stimulus_index: int
     duration_sec: float
+
+
+class SpeakerRejectedAttemptRequest(SQLModel):
+    """Request body for recording a speaker-rejected stimulus attempt."""
+
+    stimulus_id: str
+    stimulus_index: int
+    duration_sec: float

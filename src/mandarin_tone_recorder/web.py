@@ -48,6 +48,7 @@ from mandarin_tone_recorder.recording_store import (
 from mandarin_tone_recorder.schemas import (
     CreateSessionRequest,
     CreateSessionResponse,
+    SpeakerRejectedAttemptRequest,
     TimeoutAttemptRequest,
 )
 
@@ -221,21 +222,14 @@ def create_app() -> FastAPI:
         stimulus = get_stimulus_or_404(db, request_data.stimulus_id)
         validate_stimulus_matches_session(recording_session, stimulus)
 
-        attempt = RecordingAttempt(
-            recording_id=str(uuid.uuid4()),
-            session_id=recording_session.id,
-            stimulus_id=stimulus.id,
+        record_non_audio_attempt(
+            db=db,
+            recording_session=recording_session,
+            stimulus=stimulus,
             stimulus_index=request_data.stimulus_index,
-            attempt_number=get_next_attempt_number(db, recording_session.id, stimulus.id),
-            status=AttemptStatus.TIMED_OUT,
             duration_sec=request_data.duration_sec,
-            mime_type="",
-            raw_audio_path="",
-            wav_audio_path="",
+            status=AttemptStatus.TIMED_OUT,
         )
-
-        db.add(attempt)
-        db.commit()
 
         return JSONResponse(
             {
@@ -245,6 +239,37 @@ def create_app() -> FastAPI:
                 "target_duration_reached": has_reached_target_duration(recording_session),
                 "next_stimulus": stimulus_to_out(stimulus).model_dump(mode="json"),
                 "message": "Timed out. Please try the same stimulus again.",
+            }
+        )
+
+    @app.post("/api/sessions/{session_code}/speaker-rejections")
+    async def record_speaker_rejected_attempt(
+        session_code: str,
+        request_data: SpeakerRejectedAttemptRequest,
+        db: Annotated[Session, Depends(get_session)],
+    ):
+        """Record a speaker-rejected attempt and return the same stimulus."""
+        recording_session = get_active_session_or_404(db, session_code)
+        stimulus = get_stimulus_or_404(db, request_data.stimulus_id)
+        validate_stimulus_matches_session(recording_session, stimulus)
+
+        record_non_audio_attempt(
+            db=db,
+            recording_session=recording_session,
+            stimulus=stimulus,
+            stimulus_index=request_data.stimulus_index,
+            duration_sec=request_data.duration_sec,
+            status=AttemptStatus.SPEAKER_REJECTED,
+        )
+
+        return JSONResponse(
+            {
+                "ok": True,
+                "session_code": recording_session.session_code,
+                "session_done": False,
+                "target_duration_reached": has_reached_target_duration(recording_session),
+                "next_stimulus": stimulus_to_out(stimulus).model_dump(mode="json"),
+                "message": "Redo recorded. Please try the same stimulus again.",
             }
         )
 
@@ -321,6 +346,35 @@ def validate_stimulus_matches_session(
                 "the recording session condition."
             ),
         )
+
+
+def record_non_audio_attempt(
+    *,
+    db: Session,
+    recording_session: RecordingSession,
+    stimulus: Stimulus,
+    stimulus_index: int,
+    duration_sec: float,
+    status: AttemptStatus,
+) -> RecordingAttempt:
+    """Persist an attempt event that intentionally has no uploaded audio."""
+    attempt = RecordingAttempt(
+        recording_id=str(uuid.uuid4()),
+        session_id=recording_session.id,
+        stimulus_id=stimulus.id,
+        stimulus_index=stimulus_index,
+        attempt_number=get_next_attempt_number(db, recording_session.id, stimulus.id),
+        status=status,
+        duration_sec=duration_sec,
+        mime_type="",
+        raw_audio_path="",
+        wav_audio_path="",
+    )
+
+    db.add(attempt)
+    db.commit()
+
+    return attempt
 
 
 def get_next_attempt_number(

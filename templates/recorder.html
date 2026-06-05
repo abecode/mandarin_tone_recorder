@@ -3,147 +3,132 @@
 <head>
   <meta charset="utf-8">
   <title>Mandarin Tone Recorder</title>
-  <!--
-    The browser should scale the interface sensibly on phones, tablets, and
-    laptops. This matters if a subject records on a mobile device.
-  -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!--
-    FastAPI serves files in static/ at the /static URL prefix.
-    This stylesheet controls the subject-facing recording interface.
-  -->
   <link rel="stylesheet" href="{{ url_for('static', path='/recorder.css') }}">
 </head>
 
-
 <body>
-    <!--
-    Main app container.
+  <main id="app">
+    <section id="setup-screen" class="screen">
+      <div class="screen-inner">
+        <h1>Mandarin Tone Recorder</h1>
 
-    The page has two conceptual regions:
-    1. metadata-panel: participant/session information
-    2. recording-panel: large stimulus display and Start/Next controls
-  -->
-    <main id="app">
-    <!--
-      Participant/session metadata.
+        <div class="metadata-grid">
+          <label>
+            Participant ID
+            <input id="participant-id" value="p001">
+          </label>
 
-      These fields are disabled during recording so the metadata cannot change
-      halfway through a session.
-    -->
-    <section id="metadata-panel">
-      <h1>Mandarin Tone Recorder</h1>
+          <label>
+            Speaker type
+            <select id="speaker-type">
+              <option value="native">native</option>
+              <option value="heritage">heritage</option>
+              <option value="learner" selected>learner</option>
+              <option value="other">other</option>
+            </select>
+          </label>
 
-      <div class="metadata-grid">
-	<label>
-	  Participant ID
-	  <input id="participant-id" value="p001">
-	</label>
+          <label>
+            Mandarin background
+            <input
+              id="mandarin-background"
+              placeholder="e.g., L2 learner, 2 years study"
+            >
+          </label>
 
-	<label>
-	  Speaker type
-	  <select id="speaker-type">
-	    <option value="native">native</option>
-	    <option value="heritage">heritage</option>
-	    <option value="learner" selected>learner</option>
-	    <option value="other">other</option>
-	  </select>
-	</label>
+          <label>
+            Experiment condition
+            <select id="experiment-condition">
+              <option value="tone_bearing" selected>tone-bearing: tones 1-4</option>
+              <option value="tone_unspecified">tone-unspecified: unaccented prompt</option>
+            </select>
+          </label>
 
-	<label>
-	  Mandarin background
-	  <input
-	    id="mandarin-background"
-	    placeholder="e.g., L2 learner, 2 years study"
-	  >
-	</label>
+          <label>
+            Target duration
+            <select id="target-duration-sec">
+              <option value="300">5 minutes</option>
+              <option value="600" selected>10 minutes</option>
+              <option value="900">15 minutes</option>
+              <option value="1200">20 minutes</option>
+            </select>
+          </label>
+        </div>
 
-	<label>
-	  Experiment condition
-	  <select id="experiment-condition">
-	    <option value="tone_bearing" selected>tone-bearing: tones 1–4</option>
-	    <option value="tone_unspecified">tone-unspecified: unaccented prompt</option>
-	  </select>
-	</label>
-	
-	<label>
-	  Target duration
-	  <select id="target-duration-sec">
-	    <option value="300">5 minutes</option>
-	    <option value="600" selected>10 minutes</option>
-	    <option value="900">15 minutes</option>
-	    <option value="1200">20 minutes</option>
-	  </select>
-	</label>
+        <div class="setup-actions">
+          <button id="start-btn" class="big-btn primary-btn">Start</button>
+        </div>
+
+        <div id="setup-status" class="status-text"></div>
       </div>
     </section>
 
-    <!--
-      Recording interface.
+    <section id="recording-screen" class="screen hidden">
+      <div class="recording-inner">
+        <div id="stimulus">Ready</div>
+        <div id="stimulus-details"></div>
 
-      The subject mostly interacts with this area. The stimulus is intentionally
-      very large, and the only visible recording controls are Start and Next.
-    -->
-    <section id="recording-panel">
-      <!--
-	  The current prompt/stimulus.
+        <div id="recording-controls" class="controls">
+          <button id="redo-btn" class="secondary-btn">Redo</button>
+          <button id="next-btn" class="big-btn accept-btn">Next</button>
+          <button id="stop-btn" class="danger-btn">Stop Session</button>
+        </div>
 
-	  recorder.js replaces "Ready" with the pinyin or tone-number stimulus
-	  when the user clicks Start.
-	-->
-      <div id="stimulus">Ready</div>
-
-      <!--
-	Smaller explanatory information, such as IPA or tone-number form.
-	This can be removed later if you want a cleaner subject-facing view.
-	-->
-      <div id="stimulus-details"></div>
-
-      <!--
-	  Start is shown before recording. Next is shown during recording.
-	  The final stimulus changes the Next button text to Finish.
-	-->
-      <div id="controls">
-	<button id="start-btn" class="big-btn">Start</button>
-	<button id="next-btn" class="big-btn hidden">Next</button>
-	<button id="stop-btn" class="stop-btn hidden">Stop Session</button>
+        <div id="progress" class="progress-text">Press Start to begin.</div>
+        <div id="status" class="status-text"></div>
       </div>
-
-
-      <!--
-	Human-readable progress through the stimulus list.
-      -->
-      <div id="progress">Press Start to begin.</div>
-
-      <!--
-	Status/debug messages, such as "Recording" or "Saved 3 recordings."
-	This is useful during prototyping and can be hidden in production.
-      -->
-      <div id="status"></div>
     </section>
-    </main>
 
-    <!--
-    The server injects the randomized stimulus list here.
+    <section id="ready-to-retry-screen" class="screen hidden">
+      <div class="recording-inner">
+        <div id="retry-stimulus" class="state-stimulus"></div>
+        <div id="retry-details" class="state-details"></div>
+        <div id="retry-message" class="state-message"></div>
 
-    The "| safe" filter prevents Jinja from escaping the JSON. This is okay
-    because the JSON is generated server-side from our stimulus CSV, not from
-    arbitrary user input.
+        <div class="controls">
+          <button id="retry-btn" class="big-btn primary-btn">Try Again</button>
+          <button id="retry-stop-btn" class="danger-btn">Stop Session</button>
+        </div>
+      </div>
+    </section>
 
-    max_duration_sec will set timeout for recordings
-  -->
-    <script>
-      window.MTR_MAX_DURATION_SEC = {{ max_duration_sec }};
-      window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC = {{ default_session_target_duration_sec }};
-    </script>
+    <section id="target-reached-screen" class="screen hidden">
+      <div class="recording-inner">
+        <div id="target-stimulus" class="state-stimulus"></div>
+        <div id="target-details" class="state-details"></div>
+        <div id="target-message" class="state-message">
+          Target time reached.
+        </div>
 
-    <!--
-    Browser-side recording logic.
+        <div class="controls">
+          <button id="continue-btn" class="big-btn accept-btn">Continue</button>
+          <button id="finish-btn" class="secondary-btn">Finish Session</button>
+        </div>
+      </div>
+    </section>
 
-    This script uses MediaRecorder to access the microphone and sends one audio
-    blob to the server for each stimulus.
-      -->
-    <script src="{{ url_for('static', path='/recorder.js') }}"></script>
+    <section id="finished-screen" class="screen hidden">
+      <div class="screen-inner centered">
+        <h1>Done</h1>
+        <div id="finished-message" class="state-message"></div>
+        <button id="finished-start-again-btn" class="big-btn primary-btn">Start Again</button>
+      </div>
+    </section>
+
+    <section id="aborted-screen" class="screen hidden">
+      <div class="screen-inner centered">
+        <h1>Stopped</h1>
+        <div id="aborted-message" class="state-message"></div>
+        <button id="aborted-start-again-btn" class="big-btn primary-btn">Start Again</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.MTR_MAX_DURATION_SEC = {{ max_duration_sec }};
+    window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC = {{ default_session_target_duration_sec }};
+  </script>
+  <script src="{{ url_for('static', path='/recorder.js') }}"></script>
 </body>
 </html>

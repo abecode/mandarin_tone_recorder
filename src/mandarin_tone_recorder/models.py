@@ -61,6 +61,7 @@ class AttemptStatus(StrEnum):
 
     ACCEPTED = "accepted"
     TIMED_OUT = "timed_out"
+    SPEAKER_REJECTED = "speaker_rejected"
     ABORTED = "aborted"
     SAVE_FAILED = "save_failed"
 

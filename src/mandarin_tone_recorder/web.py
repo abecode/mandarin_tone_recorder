@@ -158,6 +158,7 @@ def create_app() -> FastAPI:
         """Save one accepted recording attempt and return the next stimulus."""
         recording_session = get_active_session_or_404(db, session_code)
         stimulus = get_stimulus_or_404(db, stimulus_id)
+        validate_stimulus_matches_session(recording_session, stimulus)
 
         audio_bytes = await file.read()
 
@@ -218,6 +219,7 @@ def create_app() -> FastAPI:
         """Record a timed-out attempt and return the same stimulus for retry."""
         recording_session = get_active_session_or_404(db, session_code)
         stimulus = get_stimulus_or_404(db, request_data.stimulus_id)
+        validate_stimulus_matches_session(recording_session, stimulus)
 
         attempt = RecordingAttempt(
             recording_id=str(uuid.uuid4()),
@@ -304,6 +306,21 @@ def get_stimulus_or_404(db: Session, stimulus_id: str) -> Stimulus:
         raise HTTPException(status_code=404, detail="Stimulus not found.")
 
     return stimulus
+
+
+def validate_stimulus_matches_session(
+    recording_session: RecordingSession,
+    stimulus: Stimulus,
+) -> None:
+    """Reject stimuli that do not belong to the session's condition."""
+    if stimulus.experiment_condition != recording_session.experiment_condition:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Stimulus experiment condition does not match "
+                "the recording session condition."
+            ),
+        )
 
 
 def get_next_attempt_number(

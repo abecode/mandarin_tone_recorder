@@ -55,6 +55,22 @@ def normalize_ascii(row: dict) -> str:
     return ascii_value
 
 
+def parse_bool(value, *, default: bool = True) -> bool:
+    """Parse common CSV boolean values without treating every string as true."""
+    if isinstance(value, bool):
+        return value
+
+    normalized = str(value or "").strip().lower()
+
+    if normalized in {"true", "t", "yes", "y", "1"}:
+        return True
+
+    if normalized in {"false", "f", "no", "n", "0"}:
+        return False
+
+    return default
+
+
 def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
     """Import the stimulus CSV into the database.
 
@@ -112,7 +128,7 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
                         target_tone=target_tone,
                         display_text=str(row.get("pinyin") or f"{base_ascii}{target_tone}"),
                         prompt_type="pinyin_tone_marked",
-                        is_attested=bool(row.get("is_attested", True)),
+                        is_attested=parse_bool(row.get("is_attested"), default=True),
                     )
                     session.add(stimulus)
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Mandarin Tone Recorder</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', path='/recorder.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='/recorder.css') }}?v={{ static_version }}">
 </head>
 
 <body>
@@ -129,6 +129,6 @@
     window.MTR_MAX_DURATION_SEC = {{ max_duration_sec }};
     window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC = {{ default_session_target_duration_sec }};
   </script>
-  <script src="{{ url_for('static', path='/recorder.js') }}"></script>
+  <script src="{{ url_for('static', path='/recorder.js') }}?v={{ static_version }}"></script>
 </body>
 </html>

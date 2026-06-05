@@ -84,6 +84,12 @@ def create_app() -> FastAPI:
             {
                 "max_duration_sec": MAX_DURATION_SEC,
                 "default_session_target_duration_sec": DEFAULT_SESSION_TARGET_DURATION_SEC,
+                "static_version": str(
+                    max(
+                        STATIC_DIR.joinpath("recorder.css").stat().st_mtime_ns,
+                        STATIC_DIR.joinpath("recorder.js").stat().st_mtime_ns,
+                    )
+                ),
             },
         )
 

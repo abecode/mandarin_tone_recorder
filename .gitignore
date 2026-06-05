@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+
+# data
+data/audio/
+data/*.sqlite3
+data/*.db
+recording_sessions/
+exports/
+
+# modeling
+outputs/
+checkpoints/
+wandb/
+mlruns/
+*.safetensors
+*.pt

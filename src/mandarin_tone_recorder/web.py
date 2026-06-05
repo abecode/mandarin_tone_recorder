@@ -11,7 +11,6 @@ The database models, assignment policy, and file storage logic live elsewhere.
 """
 
 import uuid
-from datetime import datetime
 from typing import Annotated
 
 import uvicorn
@@ -342,7 +341,7 @@ def next_stimulus_response(
 
     if next_stimulus is None:
         recording_session.status = SessionStatus.FINISHED
-        recording_session.ended_at = datetime.now(timezone.utc)
+        recording_session.ended_at = utc_now() 
         db.add(recording_session)
         db.commit()
 

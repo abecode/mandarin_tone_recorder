@@ -1,7 +1,7 @@
 """Framework-independent storage for recorded stimulus chunks.
 
-This module handles filenames, audio file writing, optional conversion to WAV,
-and metadata CSV appending.
+This module handles filenames, audio file writing, and optional conversion to
+WAV.
 
 It intentionally avoids FastAPI-specific types such as ``UploadFile``. The web
 layer should parse the request, read the uploaded bytes, and then call
@@ -9,19 +9,13 @@ layer should parse the request, read the uploaded bytes, and then call
 portable if the project later moves to Django or another framework.
 """
 
-import csv
 import re
 import shutil
 import subprocess
-import threading
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-
-_metadata_lock = threading.Lock()
 
 
 def safe_name(value: str) -> str:
@@ -190,10 +184,11 @@ def save_recording_chunk(
     target_sample_rate: int = 16000,
     recording_id: str | None = None,
 ) -> dict[str, Any]:
-    """Save one recording chunk and append its metadata.
+    """Save one recording chunk.
 
     This function writes the raw browser-uploaded audio file, optionally
-    converts it to WAV, and appends one row to the project-level metadata CSV.
+    converts it to WAV, and returns the paths that should be persisted by the
+    caller.
 
     Files are stored under:
 
@@ -205,16 +200,13 @@ def save_recording_chunk(
         The recording chunk to save.
     audio_dir:
         Base directory for audio files.
-    metadata_csv:
-        Path to the CSV file where metadata rows should be appended.
     target_sample_rate:
         Sample rate for optional WAV conversion.
 
     Returns
     -------
     dict[str, Any]
-        A result dictionary containing the recording ID, file paths, metadata
-        path, and the row that was written.
+        A result dictionary containing the recording ID and file paths.
     """
     participant_id = safe_name(chunk.participant_id or "anonymous")
     session_id = safe_name(chunk.session_id or "default_session")
@@ -246,11 +238,8 @@ def save_recording_chunk(
         target_sample_rate=target_sample_rate,
     )
 
-    duration_sec = (chunk.ended_at_ms - chunk.started_at_ms) / 1000.0
-
     return {
         "recording_id": recording_id,
         "raw_audio_path": str(raw_path),
         "wav_audio_path": str(wav_path) if wav_path else None,
     }
-

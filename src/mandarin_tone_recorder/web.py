@@ -358,7 +358,7 @@ def next_stimulus_response(
 
     if next_stimulus is None:
         recording_session.status = SessionStatus.FINISHED
-        recording_session.ended_at = utc_now() 
+        recording_session.ended_at = utc_now()
         db.add(recording_session)
         db.commit()
 

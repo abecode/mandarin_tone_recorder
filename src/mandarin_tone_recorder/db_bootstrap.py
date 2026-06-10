@@ -55,6 +55,16 @@ def normalize_ascii(row: dict) -> str:
     return ascii_value
 
 
+def derive_pinyin_base(row: dict) -> str:
+    """Return untoned display Pinyin while preserving standard ``ü`` spelling."""
+    pinyin_number = str(row.get("pinyin_number") or "").strip()
+
+    if pinyin_number and pinyin_number[-1:] in {"1", "2", "3", "4", "5"}:
+        return pinyin_number[:-1]
+
+    return str(row.get("pinyin_base") or normalize_ascii(row))
+
+
 def parse_bool(value, *, default: bool = True) -> bool:
     """Parse common CSV boolean values without treating every string as true."""
     if isinstance(value, bool):
@@ -93,6 +103,8 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
             if not base_ascii:
                 continue
 
+            pinyin_base = derive_pinyin_base(row)
+
             base = session.exec(
                 select(BaseSyllable).where(BaseSyllable.ascii == base_ascii)
             ).first()
@@ -100,7 +112,7 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
             if base is None:
                 base = BaseSyllable(
                     ascii=base_ascii,
-                    pinyin_base=str(row.get("pinyin_base") or base_ascii),
+                    pinyin_base=pinyin_base,
                     initial=derive_initial(row),
                     rhyme=derive_rhyme(row),
                     onset=str(row.get("onset") or ""),
@@ -112,6 +124,9 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
                 session.add(base)
                 session.commit()
                 session.refresh(base)
+            elif base.pinyin_base != pinyin_base:
+                base.pinyin_base = pinyin_base
+                session.add(base)
 
             if target_tone is not None:
                 stimulus_id = str(row.get("stimulus_id") or f"{base_ascii}{target_tone}")
@@ -144,11 +159,14 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
                     base_syllable_id=base.id,
                     experiment_condition=ExperimentCondition.TONE_UNSPECIFIED,
                     target_tone=None,
-                    display_text=base_ascii,
+                    display_text=pinyin_base,
                     prompt_type="pinyin_unaccented",
                     is_attested=True,
                 )
                 session.add(unspecified)
+            elif existing_unspecified.display_text != pinyin_base:
+                existing_unspecified.display_text = pinyin_base
+                session.add(existing_unspecified)
 
         session.commit()
 

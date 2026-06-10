@@ -146,6 +146,9 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
                         is_attested=parse_bool(row.get("is_attested"), default=True),
                     )
                     session.add(stimulus)
+                elif existing.base_syllable_id != base.id:
+                    existing.base_syllable_id = base.id
+                    session.add(existing)
 
             unspecified_id = f"{base_ascii}_unspecified"
 
@@ -164,8 +167,11 @@ def import_stimuli(csv_path: Path = STIMULI_CSV) -> None:
                     is_attested=True,
                 )
                 session.add(unspecified)
-            elif existing_unspecified.display_text != pinyin_base:
-                existing_unspecified.display_text = pinyin_base
+            else:
+                if existing_unspecified.base_syllable_id != base.id:
+                    existing_unspecified.base_syllable_id = base.id
+                if existing_unspecified.display_text != pinyin_base:
+                    existing_unspecified.display_text = pinyin_base
                 session.add(existing_unspecified)
 
         session.commit()

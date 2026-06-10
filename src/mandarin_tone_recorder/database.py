@@ -9,6 +9,7 @@ database configuration while the higher-level concepts can remain similar.
 
 from collections.abc import Generator
 
+from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine
 
 from mandarin_tone_recorder.config import DATA_DIR, DATABASE_URL
@@ -23,6 +24,15 @@ engine = create_engine(
     connect_args=connect_args,
     echo=False,
 )
+
+
+@event.listens_for(engine, "connect")
+def enable_sqlite_foreign_keys(dbapi_connection, connection_record) -> None:
+    """Enable SQLite foreign-key checks for every database connection."""
+    del connection_record
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 def init_db() -> None:

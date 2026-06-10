@@ -32,6 +32,7 @@ from mandarin_tone_recorder.config import (
 from mandarin_tone_recorder.database import get_session, init_db
 from mandarin_tone_recorder.models import (
     AttemptStatus,
+    BaseSyllable,
     ExperimentCondition,
     Participant,
     RecordingAttempt,
@@ -328,9 +329,11 @@ def get_active_session_or_404(db: Session, session_code: str) -> RecordingSessio
 
 
 def get_stimulus_or_404(db: Session, stimulus_id: str) -> Stimulus:
-    """Return a stimulus by public stimulus_id or raise 404."""
+    """Return a valid stimulus by public stimulus_id or raise 404."""
     stimulus = db.exec(
-        select(Stimulus).where(Stimulus.stimulus_id == stimulus_id)
+        select(Stimulus)
+        .join(BaseSyllable, Stimulus.base_syllable_id == BaseSyllable.id)
+        .where(Stimulus.stimulus_id == stimulus_id)
     ).first()
 
     if stimulus is None:

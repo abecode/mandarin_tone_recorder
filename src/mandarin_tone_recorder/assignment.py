@@ -11,6 +11,7 @@ from sqlmodel import Session, func, select
 
 from mandarin_tone_recorder.models import (
     AttemptStatus,
+    BaseSyllable,
     ExperimentCondition,
     RecordingAttempt,
     RecordingSession,
@@ -65,6 +66,7 @@ def choose_next_stimulus(
 
     eligible_stimuli = session.exec(
         select(Stimulus)
+        .join(BaseSyllable, Stimulus.base_syllable_id == BaseSyllable.id)
         .where(Stimulus.experiment_condition == recording_session.experiment_condition)
         .where(Stimulus.id.not_in(accepted_in_this_session_query))
     ).all()

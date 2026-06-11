@@ -68,6 +68,21 @@ h1 {
   line-height: 1.1;
 }
 
+.setup-instructions {
+  max-width: 900px;
+  color: #334155;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.setup-instructions p {
+  margin: 0;
+}
+
+.setup-instructions p + p {
+  margin-top: 0.75rem;
+}
+
 .metadata-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(12rem, 1fr));

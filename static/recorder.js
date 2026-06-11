@@ -12,6 +12,7 @@
 
 const maxDurationSec = window.MTR_MAX_DURATION_SEC || 7.0;
 const maxDurationMs = maxDurationSec * 1000;
+const postClickBufferMs = 500;
 const defaultSessionTargetDurationSec =
   window.MTR_DEFAULT_SESSION_TARGET_DURATION_SEC || 600;
 
@@ -560,7 +561,7 @@ async function handleDataAvailable(event, recorderGeneration) {
   }
 }
 
-function acceptCurrentStimulus() {
+async function acceptCurrentStimulus() {
   if (screenState !== "recording") {
     return;
   }
@@ -571,9 +572,22 @@ function acceptCurrentStimulus() {
   }
 
   clearSegmentTimer();
+  setRecordingControlsDisabled(true);
+  setProgress("Finishing recording...");
+  setRecordingStatus("Finishing recording...");
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, postClickBufferMs);
+  });
+
+  if (!recorder || recorder.state !== "recording") {
+    setRecordingStatus("Recorder stopped before the recording could be saved.");
+    setRecordingControlsDisabled(false);
+    return;
+  }
+
   saveEndedAtMs = Date.now();
   setProgress("Saving and advancing...");
-  setRecordingControlsDisabled(true);
   recorder.requestData();
 }
 

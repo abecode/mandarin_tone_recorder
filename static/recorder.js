@@ -80,6 +80,7 @@ let sessionCode = null;
 let currentStimulusData = null;
 let currentIndex = 0;
 let uploadCount = 0;
+let continuedPastTarget = false;
 let screenState = "setup";
 
 
@@ -186,6 +187,7 @@ function resetClientSessionState() {
   currentStimulusData = null;
   currentIndex = 0;
   uploadCount = 0;
+  continuedPastTarget = false;
   segmentStartMs = null;
   saveEndedAtMs = null;
   discardNextBlob = false;
@@ -279,9 +281,10 @@ function startRecordingCurrentStimulus() {
   recorder.start();
 
   startSegmentTimer();
-  showRecordingScreen(
-    `Recording. Maximum duration per item: ${maxDurationSec.toFixed(1)} seconds.`
-  );
+  const statusMessage = continuedPastTarget
+    ? "Recording. Thank you for completing your session. You may stop the session at any time."
+    : `Recording. Maximum duration per item: ${maxDurationSec.toFixed(1)} seconds.`;
+  showRecordingScreen(statusMessage);
 }
 
 
@@ -449,6 +452,7 @@ async function startSession() {
     currentStimulusData = sessionInfo.first_stimulus;
     currentIndex = 1;
     uploadCount = 0;
+    continuedPastTarget = false;
     mimeType = chooseMimeType();
     setSetupStatus("");
     startRecordingCurrentStimulus();
@@ -544,7 +548,7 @@ async function handleDataAvailable(event, recorderGeneration) {
     currentStimulusData = result.next_stimulus;
     currentIndex += 1;
 
-    if (result.target_duration_reached) {
+    if (result.target_duration_reached && !continuedPastTarget) {
       stopCurrentRecorderWithoutUpload();
       showTargetReachedScreen(
         "Target time reached. Choose whether to continue with the next item."
@@ -667,6 +671,7 @@ retryStopBtn.addEventListener("click", () => {
 continueBtn.addEventListener("click", () => {
   continueBtn.disabled = true;
   finishBtn.disabled = true;
+  continuedPastTarget = true;
   startRecordingCurrentStimulus();
 });
 

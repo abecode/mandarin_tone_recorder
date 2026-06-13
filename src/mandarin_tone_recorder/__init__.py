@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from mandarin-tone-recorder!")
+"""Mandarin Tone Recorder Django project."""

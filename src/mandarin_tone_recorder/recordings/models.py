@@ -63,6 +63,11 @@ class RecordingSession(models.Model):
 
     class Meta:
         constraints = [
+            models.UniqueConstraint(
+                fields=("enrollment",),
+                condition=Q(status="active"),
+                name="unique_active_recording_session_per_enrollment",
+            ),
             models.CheckConstraint(
                 condition=(
                     Q(current_stimulus__isnull=True, current_stimulus_index__isnull=True)

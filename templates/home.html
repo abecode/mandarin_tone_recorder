@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="workspace">
+    <h1>Mandarin Tone Recorder</h1>
+    {% if user.is_authenticated %}
+      <p>Your experiments and practice sessions will appear here.</p>
+    {% else %}
+      <p>Log in to access recording experiments and Mandarin practice.</p>
+      <a class="primary-action" href="{% url 'accounts:login' %}">Log in</a>
+    {% endif %}
+  </section>
+{% endblock %}

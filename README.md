@@ -1,13 +1,24 @@
-This a research-oriented application for recording Mandarin tones.
+# Mandarin Tone Recorder
 
-first bootstrap the db:
+A Django application for Mandarin recording experiments and language practice.
 
+## Development
+
+Install dependencies and apply migrations:
+
+```bash
+uv sync
+uv run python manage.py migrate
 ```
-uv run python -m mandarin_tone_recorder.db_bootstrap
+
+Create an administrator:
+
+```bash
+uv run python manage.py createsuperuser
 ```
 
+Run the development server:
 
-then start the app:
-```
-uv run uvicorn app:app --reload --port 7860
+```bash
+uv run python manage.py runserver
 ```

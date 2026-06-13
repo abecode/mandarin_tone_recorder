@@ -11,10 +11,12 @@ wheels/
 
 # data
 data/audio/
+data/media/
 data/*.sqlite3
 data/*.db
 recording_sessions/
 exports/
+staticfiles/
 
 # modeling
 outputs/

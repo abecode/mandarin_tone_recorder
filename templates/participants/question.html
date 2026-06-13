@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+  <section class="study-flow">
+    <p class="step-label">{{ step }}</p>
+    <h1>{{ heading }}</h1>
+
+    <form method="post" class="study-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <fieldset>
+          <legend>{{ field.label }}</legend>
+          {{ field.errors }}
+          <div class="choice-list">{{ field }}</div>
+        </fieldset>
+      {% endfor %}
+      <button type="submit">Next</button>
+    </form>
+  </section>
+{% endblock %}

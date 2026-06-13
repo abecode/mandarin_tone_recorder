@@ -12,6 +12,7 @@ urlpatterns = [
     path("", home, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("mandarin_tone_recorder.accounts.urls")),
+    path("participate/", include("mandarin_tone_recorder.participants.urls")),
 ]
 
 if settings.DEBUG:

@@ -6,8 +6,15 @@
     {% if user.is_authenticated %}
       <p>Your experiments and practice sessions will appear here.</p>
     {% else %}
-      <p>Log in to access recording experiments and Mandarin practice.</p>
-      <a class="primary-action" href="{% url 'accounts:login' %}">Log in</a>
+      <p>You can participate in the recording experiment without creating an account.</p>
     {% endif %}
+    <div class="action-row">
+      <a class="primary-action" href="{% url 'participants:consent' %}">
+        Participate in the experiment
+      </a>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:login' %}">Log in</a>
+      {% endif %}
+    </div>
   </section>
 {% endblock %}

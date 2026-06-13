@@ -119,7 +119,10 @@ def read_syllable_csv(path: str | Path) -> pd.DataFrame:
     if not kept_lines:
         raise ValueError(f"No usable CSV rows found in {path}")
 
-    df = pd.read_csv(StringIO("".join(kept_lines))).fillna("")
+    df = pd.read_csv(
+        StringIO("".join(kept_lines)),
+        keep_default_na=False,
+    )
 
     if len(df) != len(rare_flags):
         raise ValueError(

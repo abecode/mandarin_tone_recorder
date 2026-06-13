@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Recording experiment{% endblock %}
+
+{% block content %}
+  <section class="recorder" data-recorder>
+    <div class="recorder-screen" data-screen="start">
+      <p class="step-label">{{ session.enrollment.experiment.name }}</p>
+      <h1>Ready to record</h1>
+      <p>Allow microphone access, then read each prompt aloud.</p>
+      <button type="button" data-action="begin">Start recording</button>
+      <p class="recorder-status" data-start-status role="status"></p>
+    </div>
+
+    <div class="recorder-screen is-hidden" data-screen="recording">
+      <p class="recorder-index" data-index></p>
+      <div class="recorder-stimulus" data-stimulus></div>
+      <div class="recorder-details" data-details></div>
+      <div class="recorder-actions">
+        <button type="button" class="button-secondary" data-action="redo">Redo</button>
+        <button type="button" class="button-accept" data-action="next">Next</button>
+        <button type="button" class="button-danger" data-action="abort">Stop session</button>
+      </div>
+      <p class="recorder-status" data-status role="status"></p>
+    </div>
+
+    <div class="recorder-screen is-hidden" data-screen="retry">
+      <p class="recorder-index" data-retry-index></p>
+      <div class="recorder-stimulus" data-retry-stimulus></div>
+      <p class="recorder-state-message" data-retry-message></p>
+      <div class="recorder-actions">
+        <button type="button" data-action="try-again">Try again</button>
+        <button type="button" class="button-danger" data-action="abort">Stop session</button>
+      </div>
+    </div>
+
+    <div class="recorder-screen is-hidden" data-screen="target">
+      <p class="step-label">Session target reached</p>
+      <h1>Thank you for completing your session</h1>
+      <p>You may finish now or continue recording additional prompts.</p>
+      <div class="recorder-actions">
+        <button type="button" class="button-accept" data-action="continue">Continue</button>
+        <button type="button" class="button-secondary" data-action="finish">Finish session</button>
+      </div>
+      <p class="recorder-status" data-target-status role="status"></p>
+    </div>
+
+    <div class="recorder-screen is-hidden" data-screen="finished">
+      <p class="step-label">Complete</p>
+      <h1>Recording finished</h1>
+      <p>Your completed recordings have been saved.</p>
+      <a class="primary-action" href="{% url 'home' %}">Return home</a>
+    </div>
+
+    <div class="recorder-screen is-hidden" data-screen="aborted">
+      <p class="step-label">Stopped</p>
+      <h1>Session stopped</h1>
+      <p>Your completed recordings were saved. The current incomplete prompt was discarded.</p>
+      <a class="primary-action" href="{% url 'home' %}">Return home</a>
+    </div>
+  </section>
+
+  {{ recorder_config|json_script:"recorder-config" }}
+  <script src="{% static 'js/recorder.js' %}" defer></script>
+{% endblock %}

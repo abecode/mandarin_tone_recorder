@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Recording session{% endblock %}
+
+{% block content %}
+  <section class="study-flow">
+    <p class="step-label">{{ session.get_status_display }}</p>
+    <h1>Recording session {{ session.get_status_display|lower }}</h1>
+    <p>This recording session is no longer active.</p>
+    <a class="primary-action" href="{% url 'home' %}">Return home</a>
+  </section>
+{% endblock %}

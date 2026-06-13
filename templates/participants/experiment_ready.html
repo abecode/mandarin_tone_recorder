@@ -7,8 +7,8 @@
     <p class="step-label">Setup complete</p>
     <h1>{{ enrollment.experiment.name }}</h1>
     <p>
-      Based on your answers, this is the experiment you will complete. The
-      recording workflow will be connected here in the next implementation step.
+      Based on your answers, this is the experiment you will complete. When you
+      begin, your browser will ask for microphone access.
     </p>
     <dl class="study-summary">
       <div>
@@ -20,5 +20,19 @@
         <dd>{{ enrollment.get_status_display }}</dd>
       </div>
     </dl>
+    {% if enrollment.status == "ready" or enrollment.status == "in_progress" %}
+      <form
+        method="post"
+        action="{% url 'recordings:start' enrollment_id=enrollment.id %}"
+        class="start-experiment-form"
+      >
+        {% csrf_token %}
+        <button type="submit">
+          {% if enrollment.status == "in_progress" %}Resume experiment{% else %}Begin experiment{% endif %}
+        </button>
+      </form>
+    {% else %}
+      <p>This enrollment is {{ enrollment.get_status_display|lower }}.</p>
+    {% endif %}
   </section>
 {% endblock %}

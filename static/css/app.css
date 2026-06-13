@@ -172,3 +172,123 @@ button {
 .study-summary dd {
   margin: 0;
 }
+
+.start-experiment-form {
+  margin-top: 1.5rem;
+}
+
+.recorder {
+  min-height: calc(100vh - 8rem);
+  display: grid;
+  align-items: center;
+}
+
+.recorder-screen {
+  width: min(100%, 56rem);
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.recorder-screen h1,
+.recorder-screen p {
+  margin: 0;
+}
+
+.recorder-index {
+  min-height: 1.5rem;
+  color: #596579;
+  font-weight: 700;
+}
+
+.recorder-stimulus {
+  min-height: 9rem;
+  display: grid;
+  place-items: center;
+  font-size: 7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.recorder-details {
+  min-height: 1.75rem;
+  color: #596579;
+  font-size: 1.1rem;
+  font-weight: 650;
+}
+
+.recorder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.recorder-actions button {
+  min-width: 9rem;
+  min-height: 3.25rem;
+}
+
+.recorder-actions .button-accept {
+  min-width: 12rem;
+  background: #167342;
+  font-size: 1.35rem;
+}
+
+.button-secondary {
+  background: #49576b;
+}
+
+.button-danger {
+  background: #b4232c;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.recorder-status {
+  min-height: 1.5rem;
+  color: #596579;
+}
+
+.recorder-state-message {
+  color: #364154;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.is-hidden {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .site-header {
+    padding: 0 1rem;
+  }
+
+  .page {
+    padding: 1.25rem 0;
+  }
+
+  .recorder {
+    min-height: calc(100vh - 6.5rem);
+  }
+
+  .recorder-stimulus {
+    min-height: 6rem;
+    font-size: 4.75rem;
+  }
+
+  .recorder-actions {
+    width: 100%;
+    display: grid;
+  }
+
+  .recorder-actions button {
+    width: 100%;
+  }
+}

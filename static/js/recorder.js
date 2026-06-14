@@ -82,8 +82,16 @@ if (root && configElement) {
   }
 
   function setControlsDisabled(disabled) {
-    for (const button of root.querySelectorAll(
+    for (const button of screens.recording.querySelectorAll(
       '[data-action="next"], [data-action="redo"], [data-action="abort"]',
+    )) {
+      button.disabled = disabled;
+    }
+  }
+
+  function setRetryControlsDisabled(disabled) {
+    for (const button of screens.retry.querySelectorAll(
+      '[data-action="try-again"], [data-action="abort"]',
     )) {
       button.disabled = disabled;
     }
@@ -255,6 +263,7 @@ if (root && configElement) {
       elements.retryMessage.textContent = error.message;
       showScreen("retry");
     } finally {
+      setRetryControlsDisabled(false);
       busy = false;
     }
   }
@@ -316,7 +325,10 @@ if (root && configElement) {
       try {
         await startSegment();
       } catch (error) {
-        elements.startStatus.textContent = error.message;
+        const statusElement =
+          action === "try-again" ? elements.retryMessage : elements.startStatus;
+        statusElement.textContent = error.message;
+      } finally {
         button.disabled = false;
       }
     } else if (action === "next") {

@@ -178,6 +178,55 @@ class RecordingViewTests(TestCase):
         self.assertEqual(session.current_stimulus, stimulus)
         self.assertEqual(session.current_stimulus_index, 1)
 
+    def test_non_tone_retry_returns_a_tone_unspecified_stimulus(self) -> None:
+        non_tone_experiment = Experiment.objects.get(
+            slug="mandarin-non-tone-reading"
+        )
+        unspecified = Stimulus.objects.create(
+            stable_id="ma_unspecified",
+            base_syllable=self.base,
+            condition=Stimulus.Condition.TONE_UNSPECIFIED,
+            target_tone=None,
+            display_text="ma",
+        )
+        ExperimentStimulus.objects.create(
+            experiment=non_tone_experiment,
+            stimulus=unspecified,
+        )
+        non_tone_participant = Participant.objects.create()
+        Consent.objects.create(
+            participant=non_tone_participant,
+            version=CONSENT_VERSION,
+        )
+        enrollment = Enrollment.objects.create(
+            participant=non_tone_participant,
+            experiment=non_tone_experiment,
+            routing_reason="Non-tone retry test.",
+        )
+        browser_session = self.client.session
+        browser_session[PARTICIPANT_SESSION_KEY] = str(
+            non_tone_participant.public_id
+        )
+        browser_session.save()
+        self.client.post(reverse("recordings:start", args=(enrollment.pk,)))
+        session = RecordingSession.objects.get(enrollment=enrollment)
+
+        response = self.client.post(
+            reverse("recordings:retry-attempt", args=(session.public_id,)),
+            data=json.dumps(
+                {
+                    "stimulus_id": unspecified.stable_id,
+                    "status": RecordingAttempt.Status.SPEAKER_REJECTED,
+                    "duration_seconds": 0.5,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["next_stimulus"]["display_text"], "ma")
+        self.assertIsNone(response.json()["next_stimulus"]["target_tone"])
+
     def test_session_endpoints_are_scoped_to_browser_participant(self) -> None:
         session = self.start_session()
         other_participant = Participant.objects.create()

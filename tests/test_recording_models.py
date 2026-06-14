@@ -166,3 +166,38 @@ class RecordingModelTests(TestCase):
                 f"0012_02_ma1_20260614T204512Z_{attempt.recording_id}.webm"
             ),
         )
+
+    def test_tone_unspecified_upload_path_uses_plain_base_label(self) -> None:
+        session = self.create_session()
+        unspecified = Stimulus.objects.create(
+            stable_id="ma_unspecified",
+            base_syllable=self.base_syllable,
+            condition=Stimulus.Condition.TONE_UNSPECIFIED,
+            target_tone=None,
+            display_text="ma",
+        )
+        ExperimentStimulus.objects.create(
+            experiment=self.experiment,
+            stimulus=unspecified,
+        )
+        recorded_at = datetime(2026, 6, 14, 20, 45, 12, tzinfo=UTC)
+        attempt = RecordingAttempt(
+            session=session,
+            stimulus=unspecified,
+            stimulus_index=12,
+            attempt_number=2,
+            status=RecordingAttempt.Status.ACCEPTED,
+            recorded_at=recorded_at,
+            raw_audio=SimpleUploadedFile("browser.webm", b"audio"),
+        )
+
+        path = recording_upload_to(attempt, attempt.raw_audio.name)
+
+        self.assertEqual(
+            path,
+            (
+                f"recordings/{self.participant.public_id}/{session.public_id}/"
+                f"0012_02_ma_20260614T204512Z_{attempt.recording_id}.webm"
+            ),
+        )
+        self.assertEqual(unspecified.stable_id, "ma_unspecified")

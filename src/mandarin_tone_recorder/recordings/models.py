@@ -22,11 +22,16 @@ def recording_upload_to(instance: "RecordingAttempt", filename: str) -> str:
     """Build a readable, unique path for an uploaded recording."""
     extension = Path(filename).suffix.lower()
     participant_id = instance.session.enrollment.participant.public_id
-    stimulus_id = re.sub(r"[^A-Za-z0-9_-]+", "_", instance.stimulus.stable_id)
+    stimulus_label = (
+        instance.stimulus.base_syllable.ascii
+        if instance.stimulus.condition == Stimulus.Condition.TONE_UNSPECIFIED
+        else instance.stimulus.stable_id
+    )
+    stimulus_label = re.sub(r"[^A-Za-z0-9-]+", "-", stimulus_label)
     recorded_at = instance.recorded_at.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
     basename = (
         f"{instance.stimulus_index:04d}_{instance.attempt_number:02d}_"
-        f"{stimulus_id}_{recorded_at}_{instance.recording_id}"
+        f"{stimulus_label}_{recorded_at}_{instance.recording_id}"
     )
     return (
         f"recordings/{participant_id}/{instance.session.public_id}/"

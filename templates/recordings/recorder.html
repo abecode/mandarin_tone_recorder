@@ -57,7 +57,16 @@
       <p class="step-label">Stopped</p>
       <h1>Session stopped</h1>
       <p>Your completed recordings were saved. The current incomplete prompt was discarded.</p>
-      <a class="primary-action" href="{% url 'home' %}">Return home</a>
+      <div class="recorder-actions">
+        <form
+          method="post"
+          action="{% url 'recordings:start' enrollment_id=session.enrollment_id %}"
+        >
+          {% csrf_token %}
+          <button type="submit">Restart experiment</button>
+        </form>
+        <a class="primary-action" href="{% url 'home' %}">Return home</a>
+      </div>
     </div>
   </section>
 

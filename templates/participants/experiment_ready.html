@@ -20,7 +20,7 @@
         <dd>{{ enrollment.get_status_display }}</dd>
       </div>
     </dl>
-    {% if enrollment.status == "ready" or enrollment.status == "in_progress" %}
+    {% if enrollment.status == "ready" or enrollment.status == "in_progress" or enrollment.status == "aborted" %}
       <form
         method="post"
         action="{% url 'recordings:start' enrollment_id=enrollment.id %}"
@@ -28,7 +28,13 @@
       >
         {% csrf_token %}
         <button type="submit">
-          {% if enrollment.status == "in_progress" %}Resume experiment{% else %}Begin experiment{% endif %}
+          {% if enrollment.status == "in_progress" %}
+            Resume experiment
+          {% elif enrollment.status == "aborted" %}
+            Restart experiment
+          {% else %}
+            Begin experiment
+          {% endif %}
         </button>
       </form>
     {% else %}

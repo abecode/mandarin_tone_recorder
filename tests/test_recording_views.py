@@ -289,3 +289,15 @@ class RecordingViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         abort_session.refresh_from_db()
         self.assertEqual(abort_session.status, RecordingSession.Status.ABORTED)
+
+        response = self.client.post(
+            reverse("recordings:start", args=(abort_enrollment.pk,))
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            abort_enrollment.recording_sessions.filter(
+                status=RecordingSession.Status.ACTIVE
+            ).count(),
+            1,
+        )
+        self.assertEqual(abort_enrollment.recording_sessions.count(), 2)

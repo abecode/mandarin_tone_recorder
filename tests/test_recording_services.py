@@ -268,6 +268,26 @@ class RecordingServiceTests(TestCase):
         self.assertEqual(abort_session.status, RecordingSession.Status.ABORTED)
         self.assertEqual(abort_enrollment.status, Enrollment.Status.ABORTED)
 
+    def test_aborted_enrollment_can_start_a_new_session(self) -> None:
+        first_session = start_recording_session(
+            self.enrollment,
+            chooser=self.first,
+        )
+        abort_recording_session(first_session)
+
+        second_session = start_recording_session(
+            self.enrollment,
+            chooser=self.first,
+        )
+
+        self.assertNotEqual(second_session.pk, first_session.pk)
+        first_session.refresh_from_db()
+        self.enrollment.refresh_from_db()
+        self.assertEqual(first_session.status, RecordingSession.Status.ABORTED)
+        self.assertEqual(second_session.status, RecordingSession.Status.ACTIVE)
+        self.assertEqual(self.enrollment.status, Enrollment.Status.IN_PROGRESS)
+        self.assertEqual(self.enrollment.recording_sessions.count(), 2)
+
     def test_stale_stimulus_and_second_session_are_rejected(self) -> None:
         session = start_recording_session(self.enrollment, chooser=self.first)
 

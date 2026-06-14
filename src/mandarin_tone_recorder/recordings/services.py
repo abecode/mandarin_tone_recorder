@@ -104,8 +104,11 @@ def start_recording_session(
     ).get(pk=enrollment.pk)
     if not enrollment.experiment.is_active:
         raise RecordingWorkflowError("Cannot start an inactive experiment.")
-    if enrollment.status != Enrollment.Status.READY:
-        raise RecordingWorkflowError("Enrollment is not ready to start.")
+    if enrollment.status not in {
+        Enrollment.Status.READY,
+        Enrollment.Status.ABORTED,
+    }:
+        raise RecordingWorkflowError("Enrollment cannot start a new session.")
     if enrollment.recording_sessions.filter(
         status=RecordingSession.Status.ACTIVE
     ).exists():

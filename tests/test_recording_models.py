@@ -1,6 +1,6 @@
 """Model tests for stimuli, recording sessions, and recording attempts."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -144,13 +144,16 @@ class RecordingModelTests(TestCase):
         ):
             attempt.clean()
 
-    def test_audio_upload_path_uses_opaque_participant_and_session_ids(self) -> None:
+    def test_audio_upload_path_is_readable_unique_and_timestamped(self) -> None:
         session = self.create_session()
+        recorded_at = datetime(2026, 6, 14, 20, 45, 12, tzinfo=UTC)
         attempt = RecordingAttempt(
             session=session,
             stimulus=self.stimulus,
-            stimulus_index=1,
+            stimulus_index=12,
+            attempt_number=2,
             status=RecordingAttempt.Status.ACCEPTED,
+            recorded_at=recorded_at,
             raw_audio=SimpleUploadedFile("browser.webm", b"audio"),
         )
 
@@ -160,6 +163,6 @@ class RecordingModelTests(TestCase):
             path,
             (
                 f"recordings/{self.participant.public_id}/{session.public_id}/"
-                f"{attempt.recording_id}.webm"
+                f"0012_02_ma1_20260614T204512Z_{attempt.recording_id}.webm"
             ),
         )

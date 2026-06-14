@@ -1,6 +1,8 @@
 """Recording session and stimulus-attempt models."""
 
+import re
 import uuid
+from datetime import UTC
 from pathlib import Path
 
 from django.core.exceptions import ValidationError
@@ -17,12 +19,18 @@ from mandarin_tone_recorder.experiments.models import (
 
 
 def recording_upload_to(instance: "RecordingAttempt", filename: str) -> str:
-    """Build an opaque, participant-scoped path for an uploaded recording."""
+    """Build a readable, unique path for an uploaded recording."""
     extension = Path(filename).suffix.lower()
     participant_id = instance.session.enrollment.participant.public_id
+    stimulus_id = re.sub(r"[^A-Za-z0-9_-]+", "_", instance.stimulus.stable_id)
+    recorded_at = instance.recorded_at.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
+    basename = (
+        f"{instance.stimulus_index:04d}_{instance.attempt_number:02d}_"
+        f"{stimulus_id}_{recorded_at}_{instance.recording_id}"
+    )
     return (
         f"recordings/{participant_id}/{instance.session.public_id}/"
-        f"{instance.recording_id}{extension}"
+        f"{basename}{extension}"
     )
 
 
@@ -150,6 +158,7 @@ class RecordingAttempt(models.Model):
     status = models.CharField(choices=Status, max_length=30)
     duration_seconds = models.FloatField(blank=True, null=True)
     mime_type = models.CharField(blank=True, max_length=100)
+    recorded_at = models.DateTimeField(default=timezone.now)
     raw_audio = models.FileField(
         blank=True,
         max_length=500,

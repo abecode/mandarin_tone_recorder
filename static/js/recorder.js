@@ -97,6 +97,13 @@ if (root && configElement) {
     }
   }
 
+  function showRetryScreen(message) {
+    elements.retryMessage.textContent = message;
+    setRetryControlsDisabled(false);
+    busy = false;
+    showScreen("retry");
+  }
+
   function clearTimer() {
     if (segmentTimer !== null) {
       window.clearTimeout(segmentTimer);
@@ -257,11 +264,9 @@ if (root && configElement) {
       currentStimulus = result.next_stimulus;
       currentIndex = result.next_index;
       renderStimulus();
-      elements.retryMessage.textContent = message;
-      showScreen("retry");
+      showRetryScreen(message);
     } catch (error) {
-      elements.retryMessage.textContent = error.message;
-      showScreen("retry");
+      showRetryScreen(error.message);
     } finally {
       setRetryControlsDisabled(false);
       busy = false;

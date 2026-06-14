@@ -152,6 +152,11 @@ def session_page(
                     "RECORDING_POST_CLICK_BUFFER_MS",
                     500,
                 ),
+                "asset_version": getattr(
+                    settings,
+                    "RECORDER_ASSET_VERSION",
+                    "",
+                ),
             },
         },
     )

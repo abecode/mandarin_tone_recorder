@@ -99,6 +99,7 @@ class RecordingViewTests(TestCase):
         )
         self.assertContains(response, session.current_stimulus.stable_id)
         self.assertContains(response, "recorder-config")
+        self.assertContains(response, "recorder.js?v=20260614-2")
         self.assertIn("csrftoken", response.cookies)
 
     def test_anonymous_recorder_posts_with_page_csrf_cookie(self) -> None:

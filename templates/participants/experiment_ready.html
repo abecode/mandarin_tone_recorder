@@ -19,6 +19,16 @@
         <dt>Status</dt>
         <dd>{{ enrollment.get_status_display }}</dd>
       </div>
+      <div>
+        <dt>Native language(s)</dt>
+        <dd>
+          {% for language in native_languages %}
+            {{ language.display_name }}{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            Not recorded
+          {% endfor %}
+        </dd>
+      </div>
     </dl>
     {% if enrollment.status == "ready" or enrollment.status == "in_progress" or enrollment.status == "aborted" %}
       <form

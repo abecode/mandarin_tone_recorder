@@ -17,6 +17,7 @@ from mandarin_tone_recorder.participants.forms import (
 from mandarin_tone_recorder.participants.models import (
     Consent,
     Participant,
+    ParticipantLanguage,
     ParticipantProfile,
 )
 from mandarin_tone_recorder.participants.services import (
@@ -85,16 +86,32 @@ def mandarin_knowledge(
 ) -> HttpResponse:
     """Ask whether the participant knows Mandarin and choose the next step."""
     profile = participant.profile
-    initial = (
-        {"knows_mandarin": profile.knows_mandarin}
-        if profile.knows_mandarin is not None
-        else None
+    native_languages = list(
+        profile.languages.filter(
+            relationship=ParticipantLanguage.Relationship.NATIVE
+        )
     )
+    initial = {
+        "native_languages": [
+            language.language_tag for language in native_languages
+        ],
+        "other_language_name": next(
+            (
+                language.other_language_name
+                for language in native_languages
+                if language.language_tag == "other"
+            ),
+            "",
+        ),
+    }
+    if profile.knows_mandarin is not None:
+        initial["knows_mandarin"] = profile.knows_mandarin
     form = MandarinKnowledgeForm(
         request.POST if request.method == "POST" else None,
         initial=initial,
     )
     if request.method == "POST" and form.is_valid():
+        form.save_native_languages(profile)
         profile.knows_mandarin = form.cleaned_data["knows_mandarin"]
         if not profile.knows_mandarin:
             profile.speaker_background = ""
@@ -111,7 +128,7 @@ def mandarin_knowledge(
         "participants/question.html",
         {
             "form": form,
-            "heading": "Mandarin experience",
+            "heading": "Language background",
             "step": "Step 2 of 4",
         },
     )
@@ -194,8 +211,14 @@ def experiment_ready(
     ).first()
     if enrollment is None:
         return redirect("participants:mandarin-knowledge")
+    native_languages = enrollment.participant.profile.languages.filter(
+        relationship=ParticipantLanguage.Relationship.NATIVE
+    )
     return render(
         request,
         "participants/experiment_ready.html",
-        {"enrollment": enrollment},
+        {
+            "enrollment": enrollment,
+            "native_languages": native_languages,
+        },
     )

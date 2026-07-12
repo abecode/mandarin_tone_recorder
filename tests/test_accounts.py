@@ -12,6 +12,45 @@ class AuthenticationFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Log in")
+        self.assertContains(response, "Sign up")
+
+    def test_signup_creates_user_and_logs_them_in(self) -> None:
+        response = self.client.post(
+            reverse("accounts:signup"),
+            {
+                "username": "new-user",
+                "email": "new@example.com",
+                "password1": "correct-horse-battery-staple",
+                "password2": "correct-horse-battery-staple",
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("home"))
+        user = User.objects.get(username="new-user")
+        self.assertEqual(user.email, "new@example.com")
+        self.assertContains(response, "Your experiments and practice sessions")
+
+    def test_signup_rejects_duplicate_email(self) -> None:
+        User.objects.create_user(
+            username="existing-user",
+            email="taken@example.com",
+            password="correct-horse-battery-staple",
+        )
+
+        response = self.client.post(
+            reverse("accounts:signup"),
+            {
+                "username": "new-user",
+                "email": "taken@example.com",
+                "password1": "correct-horse-battery-staple",
+                "password2": "correct-horse-battery-staple",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "User with this Email already exists")
+        self.assertFalse(User.objects.filter(username="new-user").exists())
 
     def test_user_can_log_in_and_reach_authenticated_home(self) -> None:
         User.objects.create_user(

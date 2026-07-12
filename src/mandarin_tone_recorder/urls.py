@@ -13,6 +13,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("mandarin_tone_recorder.accounts.urls")),
     path("participate/", include("mandarin_tone_recorder.participants.urls")),
+    path("practice/", include("mandarin_tone_recorder.practice.urls")),
     path("recordings/", include("mandarin_tone_recorder.recordings.urls")),
 ]
 

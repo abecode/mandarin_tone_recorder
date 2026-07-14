@@ -20,4 +20,9 @@ urlpatterns = [
         views.sentence_pinyin_hint,
         name="sentence-pinyin-hint",
     ),
+    path(
+        "sessions/<int:session_id>/character-pinyin/",
+        views.character_pinyin_hint,
+        name="character-pinyin-hint",
+    ),
 ]

@@ -10,6 +10,8 @@ from mandarin_tone_recorder.practice.models import PracticeSession
 from mandarin_tone_recorder.practice.services import (
     complete_practice_attempt,
     create_practice_session,
+    prompt_character_hints,
+    record_character_pinyin_hint,
     record_sentence_pinyin_hint,
     start_next_practice_attempt,
     visible_practice_decks,
@@ -50,6 +52,23 @@ def session_detail(
     )
     current_attempt = start_next_practice_attempt(session)
     current_item = current_attempt.item if current_attempt is not None else None
+    sentence_pinyin_revealed = False
+    character_hints = []
+    if current_attempt is not None and current_item is not None:
+        hints = current_attempt.hint_events.all()
+        sentence_pinyin_revealed = hints.filter(
+            hint_type="sentence_pinyin",
+        ).exists()
+        revealed_indexes = set(
+            hints.filter(hint_type="character_pinyin").values_list(
+                "character_index",
+                flat=True,
+            )
+        )
+        character_hints = prompt_character_hints(
+            prompt_text=current_item.prompt_text,
+            revealed_indexes=revealed_indexes,
+        )
     return render(
         request,
         "practice/session_detail.html",
@@ -57,6 +76,8 @@ def session_detail(
             "session": session,
             "current_attempt": current_attempt,
             "current_item": current_item,
+            "character_hints": character_hints,
+            "sentence_pinyin_revealed": sentence_pinyin_revealed,
         },
     )
 
@@ -102,3 +123,37 @@ def sentence_pinyin_hint(
 
     record_sentence_pinyin_hint(attempt=attempt, revealed_at_ms=revealed_at_ms)
     return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def character_pinyin_hint(
+    request: HttpRequest,
+    session_id: int,
+) -> JsonResponse:
+    """Record that one current-prompt character's pinyin was revealed."""
+    session = get_object_or_404(PracticeSession, pk=session_id, user=request.user)
+    attempt = session.attempts.filter(completed_at__isnull=True).first()
+    if attempt is None:
+        return JsonResponse({"ok": False, "error": "No active practice attempt."}, status=400)
+
+    try:
+        character_index = int(request.POST.get("character_index", ""))
+    except ValueError:
+        return JsonResponse({"ok": False, "error": "Character index is required."}, status=400)
+
+    try:
+        revealed_at_ms = int(request.POST.get("revealed_at_ms", ""))
+    except ValueError:
+        revealed_at_ms = None
+
+    try:
+        hint = record_character_pinyin_hint(
+            attempt=attempt,
+            character_index=character_index,
+            revealed_at_ms=revealed_at_ms,
+        )
+    except ValueError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+
+    return JsonResponse({"ok": True, "character": hint.character})

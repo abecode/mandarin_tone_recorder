@@ -308,13 +308,41 @@ button:disabled {
 
 .practice-prompt {
   min-height: 10rem;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   padding: 1rem 0;
   font-size: 3.5rem;
   font-weight: 750;
   line-height: 1.25;
   text-align: center;
+}
+
+.character-hint {
+  min-width: 3.5rem;
+  min-height: 5.5rem;
+  display: grid;
+  place-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #172033;
+  font: inherit;
+}
+
+.character-hint:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.character-hint-pinyin {
+  min-height: 1.1rem;
+  color: #596579;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .practice-pinyin {

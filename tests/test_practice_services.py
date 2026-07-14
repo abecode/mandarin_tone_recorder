@@ -13,7 +13,10 @@ from mandarin_tone_recorder.practice.models import (
 from mandarin_tone_recorder.practice.services import (
     create_practice_deck,
     create_practice_session,
+    generate_character_pinyin,
     generate_pinyin_text,
+    prompt_character_hints,
+    record_character_pinyin_hint,
     split_practice_lines,
     visible_practice_decks,
 )
@@ -37,6 +40,30 @@ class PracticeServiceTests(TestCase):
         self.assertEqual(
             generate_pinyin_text("我喜欢喝茶。"),
             "wo3 xi3 huan1 he1 cha2 。",
+        )
+
+    def test_generate_character_pinyin_uses_numbered_tones(self) -> None:
+        self.assertEqual(generate_character_pinyin("喝"), "he1")
+
+    def test_prompt_character_hints_marks_revealed_chinese_characters(self) -> None:
+        self.assertEqual(
+            prompt_character_hints(prompt_text="我。", revealed_indexes={0}),
+            [
+                {
+                    "character": "我",
+                    "index": 0,
+                    "is_hintable": True,
+                    "pinyin": "wo3",
+                    "is_revealed": True,
+                },
+                {
+                    "character": "。",
+                    "index": 1,
+                    "is_hintable": False,
+                    "pinyin": "",
+                    "is_revealed": False,
+                },
+            ],
         )
 
     def test_create_practice_deck_creates_ordered_items_with_pinyin(self) -> None:
@@ -104,6 +131,31 @@ class PracticeHintEventTests(TestCase):
                 attempt=self.attempt,
                 hint_type=PracticeHintEvent.HintType.SENTENCE_PINYIN,
                 revealed_at_ms=1800,
+            )
+
+    def test_record_character_pinyin_hint_is_unique_per_character_index(self) -> None:
+        first_hint = record_character_pinyin_hint(
+            attempt=self.attempt,
+            character_index=0,
+            revealed_at_ms=500,
+        )
+        second_hint = record_character_pinyin_hint(
+            attempt=self.attempt,
+            character_index=0,
+            revealed_at_ms=900,
+        )
+
+        self.assertEqual(first_hint, second_hint)
+        self.assertEqual(self.attempt.hint_events.count(), 1)
+        self.assertEqual(first_hint.character, "我")
+        self.assertEqual(first_hint.revealed_at_ms, 500)
+
+    def test_record_character_pinyin_hint_rejects_non_chinese_character(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Chinese character"):
+            record_character_pinyin_hint(
+                attempt=self.attempt,
+                character_index=5,
+                revealed_at_ms=500,
             )
 
     def test_character_pinyin_hint_is_unique_per_character_index(self) -> None:

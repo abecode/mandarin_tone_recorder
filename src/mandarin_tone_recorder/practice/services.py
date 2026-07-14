@@ -31,6 +31,43 @@ def generate_pinyin_text(prompt_text: str) -> str:
     return " ".join(syllables)
 
 
+def is_cjk_character(character: str) -> bool:
+    """Return whether a single character is a CJK ideograph."""
+    return "\u4e00" <= character <= "\u9fff"
+
+
+def generate_character_pinyin(character: str) -> str:
+    """Generate numbered pinyin for one Chinese character."""
+    return lazy_pinyin(
+        character,
+        style=Style.TONE3,
+        neutral_tone_with_five=True,
+    )[0]
+
+
+def prompt_character_hints(
+    *,
+    prompt_text: str,
+    revealed_indexes: set[int] | None = None,
+) -> list[dict[str, object]]:
+    """Return per-character prompt display data with pinyin hints."""
+    revealed_indexes = revealed_indexes or set()
+    return [
+        {
+            "character": character,
+            "index": index,
+            "is_hintable": is_cjk_character(character),
+            "pinyin": (
+                generate_character_pinyin(character)
+                if is_cjk_character(character)
+                else ""
+            ),
+            "is_revealed": index in revealed_indexes,
+        }
+        for index, character in enumerate(prompt_text)
+    ]
+
+
 def create_practice_deck(
     *,
     user: Any,
@@ -139,5 +176,32 @@ def record_sentence_pinyin_hint(
         attempt=attempt,
         hint_type=PracticeHintEvent.HintType.SENTENCE_PINYIN,
         defaults={"revealed_at_ms": revealed_at_ms},
+    )
+    return hint
+
+
+def record_character_pinyin_hint(
+    *,
+    attempt: PracticeAttempt,
+    character_index: int,
+    revealed_at_ms: int | None = None,
+) -> PracticeHintEvent:
+    """Record that one character's pinyin was revealed for an active attempt."""
+    prompt_text = attempt.item.prompt_text
+    if character_index < 0 or character_index >= len(prompt_text):
+        raise ValueError("Character index is out of range.")
+
+    character = prompt_text[character_index]
+    if not is_cjk_character(character):
+        raise ValueError("Character pinyin hints require a Chinese character.")
+
+    hint, _created = PracticeHintEvent.objects.get_or_create(
+        attempt=attempt,
+        hint_type=PracticeHintEvent.HintType.CHARACTER_PINYIN,
+        character_index=character_index,
+        defaults={
+            "character": character,
+            "revealed_at_ms": revealed_at_ms,
+        },
     )
     return hint

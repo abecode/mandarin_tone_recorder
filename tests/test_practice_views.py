@@ -67,6 +67,7 @@ class PracticeViewTests(TestCase):
         self.assertContains(response, "Recording")
         self.assertContains(response, "Prompt 1 of 2")
         self.assertContains(response, "Show sentence pinyin")
+        self.assertContains(response, 'data-action="show-character-pinyin"')
 
     def test_session_page_is_limited_to_owning_user(self) -> None:
         other_user = User.objects.create_user(
@@ -171,6 +172,91 @@ class PracticeViewTests(TestCase):
         hint = PracticeHintEvent.objects.get(attempt=attempt)
         self.assertEqual(hint.hint_type, PracticeHintEvent.HintType.SENTENCE_PINYIN)
         self.assertEqual(hint.revealed_at_ms, 1200)
+
+    def test_character_pinyin_hint_records_once_for_current_attempt(self) -> None:
+        self.client.force_login(self.user)
+        deck = PracticeDeck.objects.create(
+            user=self.user,
+            title="Tea",
+            source_text="我喜欢喝茶。",
+        )
+        item = deck.items.create(
+            prompt_text="我喜欢喝茶。",
+            pinyin_text="wo3 xi3 huan1 he1 cha2 。",
+            sort_order=1,
+        )
+        session = PracticeSession.objects.create(deck=deck, user=self.user)
+        attempt = PracticeAttempt.objects.create(session=session, item=item)
+
+        for _ in range(2):
+            response = self.client.post(
+                reverse("practice:character-pinyin-hint", args=(session.pk,)),
+                {
+                    "character_index": "0",
+                    "revealed_at_ms": "900",
+                },
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["character"], "我")
+
+        hint = PracticeHintEvent.objects.get(attempt=attempt)
+        self.assertEqual(hint.hint_type, PracticeHintEvent.HintType.CHARACTER_PINYIN)
+        self.assertEqual(hint.character, "我")
+        self.assertEqual(hint.character_index, 0)
+        self.assertEqual(hint.revealed_at_ms, 900)
+
+    def test_character_pinyin_hint_rejects_punctuation_index(self) -> None:
+        self.client.force_login(self.user)
+        deck = PracticeDeck.objects.create(
+            user=self.user,
+            title="Tea",
+            source_text="我。",
+        )
+        item = deck.items.create(
+            prompt_text="我。",
+            pinyin_text="wo3 。",
+            sort_order=1,
+        )
+        session = PracticeSession.objects.create(deck=deck, user=self.user)
+        PracticeAttempt.objects.create(session=session, item=item)
+
+        response = self.client.post(
+            reverse("practice:character-pinyin-hint", args=(session.pk,)),
+            {
+                "character_index": "1",
+                "revealed_at_ms": "900",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Chinese character", response.json()["error"])
+
+    def test_revealed_character_hint_persists_on_session_page(self) -> None:
+        self.client.force_login(self.user)
+        deck = PracticeDeck.objects.create(
+            user=self.user,
+            title="Tea",
+            source_text="我喜欢喝茶。",
+        )
+        item = deck.items.create(
+            prompt_text="我喜欢喝茶。",
+            pinyin_text="wo3 xi3 huan1 he1 cha2 。",
+            sort_order=1,
+        )
+        session = PracticeSession.objects.create(deck=deck, user=self.user)
+        attempt = PracticeAttempt.objects.create(session=session, item=item)
+        PracticeHintEvent.objects.create(
+            attempt=attempt,
+            hint_type=PracticeHintEvent.HintType.CHARACTER_PINYIN,
+            character="我",
+            character_index=0,
+            revealed_at_ms=900,
+        )
+
+        response = self.client.get(reverse("practice:session", args=(session.pk,)))
+
+        self.assertContains(response, "wo3")
+        self.assertContains(response, "disabled")
 
     def test_post_requires_at_least_one_sentence(self) -> None:
         self.client.force_login(self.user)

@@ -62,4 +62,33 @@ if (practiceRoot) {
       }
     });
   }
+
+  practiceRoot.addEventListener("click", async (event) => {
+    const button = event.target.closest('[data-action="show-character-pinyin"]');
+    if (!button) return;
+
+    const pinyinElement = button.querySelector("[data-character-pinyin]");
+    if (pinyinElement) {
+      pinyinElement.classList.remove("is-hidden");
+    }
+    button.disabled = true;
+
+    try {
+      const body = new FormData();
+      body.append("character_index", button.dataset.characterIndex);
+      body.append("revealed_at_ms", String(Math.round(elapsedMilliseconds())));
+      const response = await fetch(practiceRoot.dataset.characterPinyinUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken() },
+        body,
+      });
+      if (!response.ok) {
+        throw new Error("Could not record character reveal.");
+      }
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+      }
+    }
+  });
 }

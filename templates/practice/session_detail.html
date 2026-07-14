@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Practice session{% endblock %}
+
+{% block content %}
+  <section class="workspace">
+    <p class="step-label">Practice session</p>
+    <h1>{{ session.deck.title }}</h1>
+
+    {% if first_item %}
+      <dl class="study-summary">
+        <div>
+          <dt>First prompt</dt>
+          <dd>{{ first_item.prompt_text }}</dd>
+        </div>
+        <div>
+          <dt>Pinyin</dt>
+          <dd>{{ first_item.pinyin_text }}</dd>
+        </div>
+      </dl>
+    {% else %}
+      <p>This deck does not have any prompts.</p>
+    {% endif %}
+  </section>
+{% endblock %}

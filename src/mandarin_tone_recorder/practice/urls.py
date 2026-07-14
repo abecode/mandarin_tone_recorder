@@ -9,4 +9,5 @@ app_name = "practice"
 
 urlpatterns = [
     path("", views.landing, name="landing"),
+    path("sessions/<int:session_id>/", views.session_detail, name="session"),
 ]

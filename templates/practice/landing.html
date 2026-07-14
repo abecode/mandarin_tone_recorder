@@ -5,5 +5,36 @@
 {% block content %}
   <section class="workspace">
     <h1>Practice</h1>
+
+    <form method="post" class="study-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <fieldset>
+          <legend>{{ field.label }}</legend>
+          {{ field.errors }}
+          <div class="choice-list">{{ field }}</div>
+          {% if field.help_text %}
+            <p>{{ field.help_text }}</p>
+          {% endif %}
+        </fieldset>
+      {% endfor %}
+      <button type="submit">Create deck</button>
+    </form>
+
+    <h2>Available decks</h2>
+    {% if decks %}
+      <ul>
+        {% for deck in decks %}
+          <li>
+            {{ deck.title }}
+            {% if deck.is_shared %}(shared){% endif %}
+            {% if deck.user_id == user.id %}(yours){% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No practice decks yet.</p>
+    {% endif %}
   </section>
 {% endblock %}

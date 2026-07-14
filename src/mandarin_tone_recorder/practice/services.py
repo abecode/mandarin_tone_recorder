@@ -6,7 +6,11 @@ from typing import Any
 from django.db.models import Q, QuerySet
 from pypinyin import Style, lazy_pinyin
 
-from mandarin_tone_recorder.practice.models import PracticeDeck, PracticeItem
+from mandarin_tone_recorder.practice.models import (
+    PracticeDeck,
+    PracticeItem,
+    PracticeSession,
+)
 
 
 def split_practice_lines(source_text: str) -> list[str]:
@@ -61,3 +65,16 @@ def visible_practice_decks(user: Any) -> QuerySet[PracticeDeck]:
     if getattr(user, "is_authenticated", False):
         visibility |= Q(user=user)
     return PracticeDeck.objects.filter(visibility).distinct()
+
+
+def create_practice_session(
+    *,
+    user: Any,
+    deck: PracticeDeck,
+) -> PracticeSession:
+    """Start a logged-in user's practice run for a visible deck."""
+    if not getattr(user, "is_authenticated", False):
+        raise ValueError("Practice sessions require a logged-in user.")
+    if not visible_practice_decks(user).filter(pk=deck.pk).exists():
+        raise ValueError("Practice deck is not visible to this user.")
+    return PracticeSession.objects.create(deck=deck, user=user)

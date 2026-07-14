@@ -12,6 +12,7 @@ from mandarin_tone_recorder.practice.models import (
 )
 from mandarin_tone_recorder.practice.services import (
     create_practice_deck,
+    create_practice_session,
     generate_pinyin_text,
     split_practice_lines,
     visible_practice_decks,
@@ -163,3 +164,24 @@ class PracticeHintEventTests(TestCase):
         self.assertIn(shared_deck, visible)
         self.assertIn(self.deck, visible)
         self.assertNotIn(private_other_deck, visible)
+
+    def test_create_practice_session_requires_visible_deck(self) -> None:
+        other_user = User.objects.create_user(
+            username="other-reader",
+            email="other@example.com",
+            password="correct-horse-battery-staple",
+        )
+        private_other_deck = PracticeDeck.objects.create(
+            user=other_user,
+            title="Private deck",
+            source_text="再见。",
+        )
+
+        with self.assertRaisesRegex(ValueError, "not visible"):
+            create_practice_session(user=self.user, deck=private_other_deck)
+
+    def test_create_practice_session_starts_session_for_visible_deck(self) -> None:
+        session = create_practice_session(user=self.user, deck=self.deck)
+
+        self.assertEqual(session.user, self.user)
+        self.assertEqual(session.deck, self.deck)

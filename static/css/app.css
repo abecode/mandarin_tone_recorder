@@ -261,6 +261,79 @@ button:disabled {
   font-weight: 700;
 }
 
+.practice-session {
+  width: min(100%, 56rem);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.practice-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.practice-header h1 {
+  margin: 0;
+}
+
+.practice-progress {
+  margin: 0.2rem 0 0;
+  color: #596579;
+  font-weight: 700;
+}
+
+.practice-recorder {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #364154;
+  font-weight: 700;
+}
+
+.recording-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: #b4232c;
+}
+
+.practice-timer {
+  min-width: 3.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.practice-prompt {
+  min-height: 10rem;
+  display: grid;
+  place-items: center;
+  padding: 1rem 0;
+  font-size: 3.5rem;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.practice-actions button {
+  min-width: 12rem;
+  min-height: 3.25rem;
+}
+
+.practice-actions .button-accept {
+  background: #167342;
+  font-size: 1.25rem;
+}
+
 .is-hidden {
   display: none;
 }
@@ -289,6 +362,20 @@ button:disabled {
   }
 
   .recorder-actions button {
+    width: 100%;
+  }
+
+  .practice-header,
+  .practice-actions {
+    display: grid;
+  }
+
+  .practice-prompt {
+    min-height: 8rem;
+    font-size: 2.6rem;
+  }
+
+  .practice-actions button {
     width: 100%;
   }
 }

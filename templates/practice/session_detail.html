@@ -1,25 +1,37 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Practice session{% endblock %}
 
 {% block content %}
-  <section class="workspace">
-    <p class="step-label">Practice session</p>
-    <h1>{{ session.deck.title }}</h1>
-
+  <section class="practice-session" data-practice-session>
     {% if first_item %}
-      <dl class="study-summary">
+      <div class="practice-header">
         <div>
-          <dt>First prompt</dt>
-          <dd>{{ first_item.prompt_text }}</dd>
+          <p class="step-label">Practice session</p>
+          <h1>{{ session.deck.title }}</h1>
         </div>
-        <div>
-          <dt>Pinyin</dt>
-          <dd>{{ first_item.pinyin_text }}</dd>
-        </div>
-      </dl>
+        <p class="practice-progress">Prompt 1 of {{ session.deck.items.count }}</p>
+      </div>
+
+      <div class="practice-recorder" aria-live="polite">
+        <span class="recording-dot" aria-hidden="true"></span>
+        <span>Recording</span>
+        <span class="practice-timer" data-practice-timer>00:00</span>
+      </div>
+
+      <div class="practice-prompt" lang="zh-Hans">{{ first_item.prompt_text }}</div>
+
+      <div class="practice-actions">
+        <button type="button" class="button-secondary" disabled>
+          Show sentence pinyin
+        </button>
+        <button type="button" class="button-accept" disabled>Next</button>
+      </div>
     {% else %}
       <p>This deck does not have any prompts.</p>
     {% endif %}
   </section>
+
+  <script src="{% static 'js/practice_session.js' %}" defer></script>
 {% endblock %}

@@ -58,6 +58,9 @@ class PracticeViewTests(TestCase):
         self.assertEqual(deck.items.first().pinyin_text, "wo3 xi3 huan1 he1 cha2 。")
         self.assertContains(response, "Tea")
         self.assertContains(response, "我喜欢喝茶。")
+        self.assertContains(response, "Recording")
+        self.assertContains(response, "Prompt 1 of 2")
+        self.assertContains(response, "Show sentence pinyin")
 
     def test_session_page_is_limited_to_owning_user(self) -> None:
         other_user = User.objects.create_user(

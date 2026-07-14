@@ -185,3 +185,5 @@ class PracticeHintEventTests(TestCase):
 
         self.assertEqual(session.user, self.user)
         self.assertEqual(session.deck, self.deck)
+        self.assertEqual(session.attempts.count(), 1)
+        self.assertEqual(session.attempts.get().item, self.deck.items.get())

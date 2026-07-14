@@ -4,14 +4,23 @@
 {% block title %}Practice session{% endblock %}
 
 {% block content %}
-  <section class="practice-session" data-practice-session>
-    {% if first_item %}
+  <section
+    class="practice-session"
+    data-practice-session
+    {% if current_attempt %}
+      data-attempt-started-at="{{ current_attempt.started_at|date:'c' }}"
+      data-sentence-pinyin-url="{% url 'practice:sentence-pinyin-hint' session_id=session.pk %}"
+    {% endif %}
+  >
+    {% if current_item and current_attempt %}
       <div class="practice-header">
         <div>
           <p class="step-label">Practice session</p>
           <h1>{{ session.deck.title }}</h1>
         </div>
-        <p class="practice-progress">Prompt 1 of {{ session.deck.items.count }}</p>
+        <p class="practice-progress">
+          Prompt {{ current_item.sort_order }} of {{ session.deck.items.count }}
+        </p>
       </div>
 
       <div class="practice-recorder" aria-live="polite">
@@ -20,16 +29,35 @@
         <span class="practice-timer" data-practice-timer>00:00</span>
       </div>
 
-      <div class="practice-prompt" lang="zh-Hans">{{ first_item.prompt_text }}</div>
+      <div class="practice-prompt" lang="zh-Hans">{{ current_item.prompt_text }}</div>
+      <p class="practice-pinyin is-hidden" data-sentence-pinyin>
+        {{ current_item.pinyin_text }}
+      </p>
 
       <div class="practice-actions">
-        <button type="button" class="button-secondary" disabled>
+        <button type="button" class="button-secondary" data-action="show-pinyin">
           Show sentence pinyin
         </button>
-        <button type="button" class="button-accept" disabled>Next</button>
+        <form
+          method="post"
+          action="{% url 'practice:complete-current-attempt' session_id=session.pk %}"
+          data-next-form
+        >
+          {% csrf_token %}
+          <input type="hidden" name="response_time_ms" data-response-time-ms>
+          <button type="submit" class="button-accept">Next</button>
+        </form>
       </div>
+      <p class="recorder-status" data-practice-status role="status"></p>
     {% else %}
-      <p>This deck does not have any prompts.</p>
+      <div class="practice-header">
+        <div>
+          <p class="step-label">Practice complete</p>
+          <h1>{{ session.deck.title }}</h1>
+        </div>
+      </div>
+      <p>You have finished this practice session.</p>
+      <a class="primary-action" href="{% url 'practice:landing' %}">Return to practice</a>
     {% endif %}
   </section>
 

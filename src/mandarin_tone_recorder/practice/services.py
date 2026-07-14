@@ -4,10 +4,13 @@ from collections.abc import Sequence
 from typing import Any
 
 from django.db.models import Q, QuerySet
+from django.utils import timezone
 from pypinyin import Style, lazy_pinyin
 
 from mandarin_tone_recorder.practice.models import (
+    PracticeAttempt,
     PracticeDeck,
+    PracticeHintEvent,
     PracticeItem,
     PracticeSession,
 )
@@ -77,4 +80,64 @@ def create_practice_session(
         raise ValueError("Practice sessions require a logged-in user.")
     if not visible_practice_decks(user).filter(pk=deck.pk).exists():
         raise ValueError("Practice deck is not visible to this user.")
-    return PracticeSession.objects.create(deck=deck, user=user)
+    session = PracticeSession.objects.create(deck=deck, user=user)
+    start_next_practice_attempt(session)
+    return session
+
+
+def start_next_practice_attempt(session: PracticeSession) -> PracticeAttempt | None:
+    """Create or return the active attempt for the next uncompleted item."""
+    active_attempt = session.attempts.filter(completed_at__isnull=True).first()
+    if active_attempt is not None:
+        return active_attempt
+
+    completed_item_ids = session.attempts.filter(
+        completed_at__isnull=False
+    ).values_list("item_id", flat=True)
+    next_item = session.deck.items.exclude(pk__in=completed_item_ids).first()
+    if next_item is None:
+        if session.finished_at is None:
+            session.finished_at = timezone.now()
+            session.save(update_fields=("finished_at",))
+        return None
+    return PracticeAttempt.objects.create(session=session, item=next_item)
+
+
+def complete_practice_attempt(
+    attempt: PracticeAttempt,
+    *,
+    response_time_ms: int,
+) -> PracticeAttempt:
+    """Complete an active attempt with browser and server timing."""
+    if attempt.completed_at is not None:
+        raise ValueError("Practice attempt is already complete.")
+    now = timezone.now()
+    attempt.completed_at = now
+    attempt.response_time_ms = response_time_ms
+    attempt.server_elapsed_ms = max(
+        0,
+        round((now - attempt.started_at).total_seconds() * 1000),
+    )
+    attempt.save(
+        update_fields=(
+            "completed_at",
+            "response_time_ms",
+            "server_elapsed_ms",
+        )
+    )
+    start_next_practice_attempt(attempt.session)
+    return attempt
+
+
+def record_sentence_pinyin_hint(
+    *,
+    attempt: PracticeAttempt,
+    revealed_at_ms: int | None = None,
+) -> PracticeHintEvent:
+    """Record that sentence pinyin was revealed, ignoring duplicate reveals."""
+    hint, _created = PracticeHintEvent.objects.get_or_create(
+        attempt=attempt,
+        hint_type=PracticeHintEvent.HintType.SENTENCE_PINYIN,
+        defaults={"revealed_at_ms": revealed_at_ms},
+    )
+    return hint

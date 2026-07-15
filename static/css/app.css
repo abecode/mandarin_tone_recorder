@@ -325,6 +325,12 @@ button:disabled {
   font-weight: 750;
   line-height: 1.25;
   text-align: center;
+  cursor: pointer;
+  user-select: text;
+}
+
+.practice-prompt:hover {
+  color: #1457a6;
 }
 
 .practice-pinyin {
@@ -334,6 +340,21 @@ button:disabled {
   font-size: 1.35rem;
   font-weight: 700;
   text-align: center;
+}
+
+.practice-pinyin-slot {
+  display: inline-block;
+  min-width: 2.5rem;
+  color: #7a8495;
+}
+
+.practice-pinyin-slot.is-revealed {
+  color: #172033;
+}
+
+.practice-pinyin-punctuation {
+  display: inline-block;
+  min-width: 1rem;
 }
 
 .practice-actions {

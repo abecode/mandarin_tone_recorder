@@ -8,6 +8,7 @@ if (practiceRoot) {
   const responseTimeInput = practiceRoot.querySelector("[data-response-time-ms]");
   const pinyin = practiceRoot.querySelector("[data-sentence-pinyin]");
   const pinyinButton = practiceRoot.querySelector('[data-action="show-pinyin"]');
+  const characterPrompt = practiceRoot.querySelector("[data-character-prompt]");
   const status = practiceRoot.querySelector("[data-practice-status]");
   const startedAt = Date.parse(practiceRoot.dataset.attemptStartedAt || "") || Date.now();
 
@@ -27,6 +28,39 @@ if (practiceRoot) {
     timer.textContent = `${minutes}:${seconds}`;
   }
 
+  function caretOffsetFromPoint(x, y) {
+    if (document.caretPositionFromPoint) {
+      const position = document.caretPositionFromPoint(x, y);
+      if (position && position.offsetNode === characterPrompt.firstChild) {
+        return position.offset;
+      }
+    }
+
+    if (document.caretRangeFromPoint) {
+      const range = document.caretRangeFromPoint(x, y);
+      if (range && range.startContainer === characterPrompt.firstChild) {
+        return range.startOffset;
+      }
+    }
+
+    return null;
+  }
+
+  function characterIndexFromClick(event) {
+    if (!characterPrompt || !characterPrompt.firstChild) return null;
+
+    const offset = caretOffsetFromPoint(event.clientX, event.clientY);
+    if (offset === null) return null;
+
+    const promptText = characterPrompt.textContent || "";
+    const index = Math.min(Math.max(offset, 0), promptText.length - 1);
+    if (index < 0) return null;
+    if (!practiceRoot.querySelector(`[data-character-pinyin-slot="${index}"]`)) {
+      return null;
+    }
+    return index;
+  }
+
   if (timer) {
     renderElapsed();
     window.setInterval(renderElapsed, 1000);
@@ -41,6 +75,7 @@ if (practiceRoot) {
   if (pinyinButton && pinyin) {
     pinyinButton.addEventListener("click", async () => {
       pinyin.classList.remove("is-hidden");
+      pinyin.textContent = pinyin.dataset.fullPinyin || pinyin.textContent;
       pinyinButton.disabled = true;
       pinyinButton.textContent = "Sentence pinyin shown";
 
@@ -62,4 +97,37 @@ if (practiceRoot) {
       }
     });
   }
+
+  practiceRoot.addEventListener("click", async (event) => {
+    if (!event.target.closest("[data-character-prompt]")) return;
+
+    const characterIndex = characterIndexFromClick(event);
+    if (characterIndex === null) return;
+
+    const pinyinSlot = practiceRoot.querySelector(
+      `[data-character-pinyin-slot="${characterIndex}"]`,
+    );
+    if (!pinyinSlot) return;
+
+    pinyinSlot.textContent = pinyinSlot.dataset.characterPinyin || "";
+    pinyinSlot.classList.add("is-revealed");
+
+    try {
+      const body = new FormData();
+      body.append("character_index", String(characterIndex));
+      body.append("revealed_at_ms", String(Math.round(elapsedMilliseconds())));
+      const response = await fetch(practiceRoot.dataset.characterPinyinUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken() },
+        body,
+      });
+      if (!response.ok) {
+        throw new Error("Could not record character reveal.");
+      }
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+      }
+    }
+  });
 }

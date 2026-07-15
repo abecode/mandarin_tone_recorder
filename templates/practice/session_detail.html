@@ -10,6 +10,7 @@
     {% if current_attempt %}
       data-attempt-started-at="{{ current_attempt.started_at|date:'c' }}"
       data-sentence-pinyin-url="{% url 'practice:sentence-pinyin-hint' session_id=session.pk %}"
+      data-character-pinyin-url="{% url 'practice:character-pinyin-hint' session_id=session.pk %}"
     {% endif %}
   >
     {% if current_item and current_attempt %}
@@ -33,14 +34,31 @@
         class="practice-prompt"
         lang="zh-Hans"
         aria-label="{{ current_item.prompt_text }}"
-      >
-        {{ current_item.prompt_text }}
-      </div>
+        data-character-prompt
+        data-action="show-character-pinyin"
+      >{{ current_item.prompt_text }}</div>
       <p
-        class="practice-pinyin{% if not sentence_pinyin_revealed %} is-hidden{% endif %}"
+        class="practice-pinyin"
+        data-full-pinyin="{{ current_item.pinyin_text }}"
         data-sentence-pinyin
       >
-        {{ current_item.pinyin_text }}
+        {% if sentence_pinyin_revealed %}
+          {{ current_item.pinyin_text }}
+        {% else %}
+          {% for hint in character_hints %}
+            {% if hint.is_hintable %}
+              <span
+                class="practice-pinyin-slot{% if hint.is_revealed %} is-revealed{% endif %}"
+                data-character-pinyin-slot="{{ hint.index }}"
+                data-character-pinyin="{{ hint.pinyin }}"
+              >
+                {% if hint.is_revealed %}{{ hint.pinyin }}{% else %}＿{% endif %}
+              </span>
+            {% else %}
+              <span class="practice-pinyin-punctuation">{{ hint.character }}</span>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
       </p>
 
       <div class="practice-actions">

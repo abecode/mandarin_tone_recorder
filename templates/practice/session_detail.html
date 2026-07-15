@@ -18,6 +18,7 @@
         <div>
           <p class="step-label">Practice session</p>
           <h1>{{ session.deck.title }}</h1>
+          <a href="{% url 'practice:landing' %}">Back to practice</a>
         </div>
         <p class="practice-progress">
           Prompt {{ current_item.sort_order }} of {{ session.deck.items.count }}

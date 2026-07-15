@@ -133,7 +133,7 @@ class PracticeViewTests(TestCase):
         self.assertContains(response, "Recording")
         self.assertContains(response, "Prompt 1 of 2")
         self.assertContains(response, "Show sentence pinyin")
-        self.assertContains(response, 'data-action="show-character-pinyin"')
+        self.assertNotContains(response, 'data-action="show-character-pinyin"')
 
     def test_session_page_is_limited_to_owning_user(self) -> None:
         other_user = User.objects.create_user(
@@ -297,7 +297,7 @@ class PracticeViewTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Chinese character", response.json()["error"])
 
-    def test_revealed_character_hint_persists_on_session_page(self) -> None:
+    def test_revealed_character_hint_does_not_render_character_controls(self) -> None:
         self.client.force_login(self.user)
         deck = PracticeDeck.objects.create(
             user=self.user,
@@ -321,8 +321,9 @@ class PracticeViewTests(TestCase):
 
         response = self.client.get(reverse("practice:session", args=(session.pk,)))
 
-        self.assertContains(response, "wo3")
-        self.assertContains(response, "disabled")
+        self.assertContains(response, "我喜欢喝茶。")
+        self.assertNotContains(response, 'data-action="show-character-pinyin"')
+        self.assertNotContains(response, "disabled")
 
     def test_post_requires_at_least_one_sentence(self) -> None:
         self.client.force_login(self.user)

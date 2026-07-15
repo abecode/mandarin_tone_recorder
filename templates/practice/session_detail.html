@@ -10,7 +10,6 @@
     {% if current_attempt %}
       data-attempt-started-at="{{ current_attempt.started_at|date:'c' }}"
       data-sentence-pinyin-url="{% url 'practice:sentence-pinyin-hint' session_id=session.pk %}"
-      data-character-pinyin-url="{% url 'practice:character-pinyin-hint' session_id=session.pk %}"
     {% endif %}
   >
     {% if current_item and current_attempt %}
@@ -35,27 +34,7 @@
         lang="zh-Hans"
         aria-label="{{ current_item.prompt_text }}"
       >
-        {% for hint in character_hints %}
-          {% if hint.is_hintable %}
-            <button
-              type="button"
-              class="character-hint"
-              data-action="show-character-pinyin"
-              data-character-index="{{ hint.index }}"
-              {% if hint.is_revealed %}disabled{% endif %}
-            >
-              <span class="character-hint-text">{{ hint.character }}</span>
-              <span
-                class="character-hint-pinyin{% if not hint.is_revealed %} is-hidden{% endif %}"
-                data-character-pinyin
-              >
-                {{ hint.pinyin }}
-              </span>
-            </button>
-          {% else %}
-            <span>{{ hint.character }}</span>
-          {% endif %}
-        {% endfor %}
+        {{ current_item.prompt_text }}
       </div>
       <p
         class="practice-pinyin{% if not sentence_pinyin_revealed %} is-hidden{% endif %}"

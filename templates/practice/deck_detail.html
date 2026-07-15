@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ deck.title }}{% endblock %}
+
+{% block content %}
+  <section class="workspace">
+    <p class="step-label">Practice deck</p>
+    <h1>{{ deck.title }}</h1>
+
+    <p>
+      {{ deck.items.count }} prompt{{ deck.items.count|pluralize }}
+      {% if deck.is_shared %}(shared){% endif %}
+      {% if deck.user_id == user.id %}(yours){% endif %}
+    </p>
+
+    <form
+      method="post"
+      action="{% url 'practice:start-deck' deck_id=deck.pk %}"
+      class="start-experiment-form"
+    >
+      {% csrf_token %}
+      <button type="submit">Start practice</button>
+    </form>
+
+    <h2>Prompts</h2>
+    <ol class="practice-item-list">
+      {% for item in deck.items.all %}
+        <li>
+          <p lang="zh-Hans">{{ item.prompt_text }}</p>
+          <p>{{ item.pinyin_text }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <p><a href="{% url 'practice:landing' %}">Back to practice</a></p>
+  </section>
+{% endblock %}

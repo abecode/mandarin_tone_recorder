@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from mandarin_tone_recorder.practice.forms import PracticeDeckForm
-from mandarin_tone_recorder.practice.models import PracticeSession
+from mandarin_tone_recorder.practice.models import PracticeDeck, PracticeSession
 from mandarin_tone_recorder.practice.services import (
     complete_practice_attempt,
     create_practice_session,
@@ -36,6 +36,35 @@ def landing(request: HttpRequest) -> HttpResponse:
             "decks": visible_practice_decks(request.user),
         },
     )
+
+
+@login_required
+@require_GET
+def deck_detail(
+    request: HttpRequest,
+    deck_id: int,
+) -> HttpResponse:
+    """Preview an available practice deck before starting a session."""
+    deck = get_object_or_404(
+        visible_practice_decks(request.user).prefetch_related("items"),
+        pk=deck_id,
+    )
+    return render(request, "practice/deck_detail.html", {"deck": deck})
+
+
+@login_required
+@require_POST
+def start_deck(
+    request: HttpRequest,
+    deck_id: int,
+) -> HttpResponse:
+    """Start a practice session for an available deck."""
+    deck = get_object_or_404(PracticeDeck, pk=deck_id)
+    try:
+        session = create_practice_session(user=request.user, deck=deck)
+    except ValueError:
+        return HttpResponseBadRequest("Practice deck is not available.")
+    return redirect("practice:session", session_id=session.pk)
 
 
 @login_required

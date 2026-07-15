@@ -27,7 +27,7 @@
       <ul>
         {% for deck in decks %}
           <li>
-            {{ deck.title }}
+            <a href="{% url 'practice:deck-detail' deck_id=deck.pk %}">{{ deck.title }}</a>
             {% if deck.is_shared %}(shared){% endif %}
             {% if deck.user_id == user.id %}(yours){% endif %}
           </li>

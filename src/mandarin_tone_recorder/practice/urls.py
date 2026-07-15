@@ -9,6 +9,8 @@ app_name = "practice"
 
 urlpatterns = [
     path("", views.landing, name="landing"),
+    path("decks/<int:deck_id>/", views.deck_detail, name="deck-detail"),
+    path("decks/<int:deck_id>/start/", views.start_deck, name="start-deck"),
     path("sessions/<int:session_id>/", views.session_detail, name="session"),
     path(
         "sessions/<int:session_id>/next/",

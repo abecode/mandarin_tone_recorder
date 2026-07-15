@@ -38,6 +38,72 @@ class PracticeViewTests(TestCase):
         self.assertContains(response, "Sentences")
         self.assertContains(response, "Create deck")
 
+    def test_available_deck_title_links_to_detail_page(self) -> None:
+        self.client.force_login(self.user)
+        deck = PracticeDeck.objects.create(
+            user=self.user,
+            title="Clickable deck",
+            source_text="你好。",
+        )
+        deck.items.create(prompt_text="你好。", pinyin_text="ni3 hao3 。", sort_order=1)
+
+        response = self.client.get(reverse("practice:landing"))
+        self.assertContains(response, "Clickable deck")
+        self.assertContains(response, reverse("practice:deck-detail", args=(deck.pk,)))
+
+        response = self.client.get(reverse("practice:deck-detail", args=(deck.pk,)))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Clickable deck")
+        self.assertContains(response, "你好。")
+        self.assertContains(response, "ni3 hao3 。")
+        self.assertContains(response, reverse("practice:start-deck", args=(deck.pk,)))
+        self.assertContains(response, "Start practice")
+
+        response = self.client.post(
+            reverse("practice:start-deck", args=(deck.pk,)),
+            follow=True,
+        )
+
+        session = PracticeSession.objects.get(deck=deck, user=self.user)
+        self.assertRedirects(response, reverse("practice:session", args=(session.pk,)))
+        self.assertContains(response, "你好。")
+
+    def test_unavailable_deck_cannot_be_started(self) -> None:
+        other_user = User.objects.create_user(
+            username="other-reader",
+            email="other@example.com",
+            password="correct-horse-battery-staple",
+        )
+        deck = PracticeDeck.objects.create(
+            user=other_user,
+            title="Private deck",
+            source_text="你好。",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("practice:start-deck", args=(deck.pk,)))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(PracticeSession.objects.exists())
+
+    def test_unavailable_deck_detail_returns_404(self) -> None:
+        other_user = User.objects.create_user(
+            username="other-reader",
+            email="other@example.com",
+            password="correct-horse-battery-staple",
+        )
+        deck = PracticeDeck.objects.create(
+            user=other_user,
+            title="Private deck",
+            source_text="你好。",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("practice:deck-detail", args=(deck.pk,)))
+
+        self.assertEqual(response.status_code, 404)
+
     def test_post_creates_deck_items_and_session_from_sentences(self) -> None:
         self.client.force_login(self.user)
 

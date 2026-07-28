@@ -4,7 +4,7 @@ onset,medial,nucleus,coda,ipa,pinyin,ascii
 ,,i,n,in,yin,yin
 ,,i,ŋ,iŋ,ying,ying
 ,,u,,u,wu,wu
-#,,u,ŋ,uŋ,ong,ong
+#,,ʊ,ŋ,ʊŋ,ong,ong
 ,,y,,y,yu,yv
 ,,y,n,yn,yun,yvn
 ,,ə,,ɤ,e,e
@@ -17,7 +17,7 @@ onset,medial,nucleus,coda,ipa,pinyin,ascii
 ,,a,u,au,ao,ao
 ,,a,n,an,an,an
 ,,a,ŋ,aŋ,ang,ang #!
-,j,u,ŋ,juŋ,yong,yong
+,j,ʊ,ŋ,jʊŋ,yong,yong
 ,j,ə,,jɛ,ye,ye
 ,j,o,,jo,yo,yo #!
 ,j,ə,u,jou,you,you
@@ -40,7 +40,7 @@ p,,i,,pi,bi,bi
 p,,i,n,pin,bin,bin
 p,,i,ŋ,piŋ,bing,bing
 p,,u,,pu,bu,bu
-#p,,u,ŋ,puŋ,bong,bong
+#p,,ʊ,ŋ,pʊŋ,bong,bong
 #p,,y,,py,bü,bv
 #p,,y,n,pyn,bün,bvn
 p,,ə,,puo,bo,bo
@@ -53,7 +53,7 @@ p,,a,i,pai,bai,bai
 p,,a,u,pau,bao,bao
 p,,a,n,pan,ban,ban
 p,,a,ŋ,paŋ,bang,bang
-#p,j,u,ŋ,pjuŋ,biong,biong
+#p,j,ʊ,ŋ,pjʊŋ,biong,biong
 p,j,ə,,pjɛ,bie,bie
 #p,j,ə,u,pjou,biu,biu
 #p,j,a,,pja,bia,bia
@@ -75,7 +75,7 @@ pʰ,,i,,pʰi,pi,pi
 pʰ,,i,n,pʰin,pin,pin
 pʰ,,i,ŋ,pʰiŋ,ping,ping
 pʰ,,u,,pʰu,pu,pu
-#pʰ,,u,ŋ,pʰuŋ,pong,pong
+#pʰ,,ʊ,ŋ,pʰʊŋ,pong,pong
 #pʰ,,y,,pʰy,pü,pv
 #pʰ,,y,n,pʰyn,pün,pvn
 pʰ,,ə,,pʰuo,po,po
@@ -88,7 +88,7 @@ pʰ,,a,i,pʰai,pai,pai
 pʰ,,a,u,pʰau,pao,pao
 pʰ,,a,n,pʰan,pan,pan
 pʰ,,a,ŋ,pʰaŋ,pang,pang
-#pʰ,j,u,ŋ,pʰjuŋ,piong,piong
+#pʰ,j,ʊ,ŋ,pʰjʊŋ,piong,piong
 pʰ,j,ə,,pʰjɛ,pie,pie #!
 #pʰ,j,ə,u,pʰjou,piu,piu
 #pʰ,j,a,,pʰja,pia,pia
@@ -110,7 +110,7 @@ m,,i,,mi,mi,mi
 m,,i,n,min,min,min
 m,,i,ŋ,miŋ,ming,ming
 m,,u,,mu,mu,mu
-#m,,u,ŋ,muŋ,mong,mong
+#m,,ʊ,ŋ,mʊŋ,mong,mong
 #m,,y,,my,mü,mv
 #m,,y,n,myn,mün,mvn
 m,,ə,,muo,mo,mo
@@ -123,7 +123,7 @@ m,,a,i,mai,mai,mai
 m,,a,u,mau,mao,mao
 m,,a,n,man,man,man
 m,,a,ŋ,maŋ,mang,mang
-#m,j,u,ŋ,mjuŋ,miong,miong
+#m,j,ʊ,ŋ,mjʊŋ,miong,miong
 m,j,ə,,mjɛ,mie,mie #!
 m,j,ə,u,mjou,miu,miu #!
 #m,j,a,,mja,mia,mia
@@ -145,7 +145,7 @@ m,j,a,n,mjɛn,mian,mian
 #f,,i,n,fin,fin,fin
 #f,,i,ŋ,fiŋ,fing,fing
 f,,u,,fu,fu,fu
-#f,,u,ŋ,fuŋ,fong,fong
+#f,,ʊ,ŋ,fʊŋ,fong,fong
 #f,,y,,fy,fü,fv
 #f,,y,n,fyn,fün,fvn
 f,,ə,,fuo,fo,fo #!
@@ -158,7 +158,7 @@ f,,a,,fa,fa,fa
 #f,,a,u,fau,fao,fao
 f,,a,n,fan,fan,fan
 f,,a,ŋ,faŋ,fang,fang
-#f,j,u,ŋ,fjuŋ,fiong,fiong
+#f,j,ʊ,ŋ,fjʊŋ,fiong,fiong
 #f,j,ə,,fjɛ,fie,fie
 #f,j,ə,u,fjou,fiu,fiu
 #f,j,a,,fja,fia,fia
@@ -180,7 +180,7 @@ t,,i,,ti,di,di
 #t,,i,n,tin,din,din
 t,,i,ŋ,tiŋ,ding,ding
 t,,u,,tu,du,du
-t,,u,ŋ,tuŋ,dong,dong
+t,,ʊ,ŋ,tʊŋ,dong,dong
 #t,,y,,ty,dü,dv
 #t,,y,n,tyn,dün,dvn
 t,,ə,,tɤ,de,de
@@ -193,7 +193,7 @@ t,,a,i,tai,dai,dai
 t,,a,u,tau,dao,dao
 t,,a,n,tan,dan,dan
 t,,a,ŋ,taŋ,dang,dang
-#t,j,u,ŋ,tjuŋ,diong,diong
+#t,j,ʊ,ŋ,tjʊŋ,diong,diong
 t,j,ə,,tjɛ,die,die
 t,j,ə,u,tjou,diu,diu #!
 t,j,a,,tja,dia,dia #!
@@ -215,7 +215,7 @@ tʰ,,i,,tʰi,ti,ti
 #tʰ,,i,n,tʰin,tin,tin
 tʰ,,i,ŋ,tʰiŋ,ting,ting
 tʰ,,u,,tʰu,tu,tu
-tʰ,,u,ŋ,tʰuŋ,tong,tong
+tʰ,,ʊ,ŋ,tʰʊŋ,tong,tong
 #tʰ,,y,,tʰy,tü,tv
 #tʰ,,y,n,tʰyn,tün,tvn
 tʰ,,ə,,tʰɤ,te,te #!
@@ -228,7 +228,7 @@ tʰ,,a,i,tʰai,tai,tai
 tʰ,,a,u,tʰau,tao,tao
 tʰ,,a,n,tʰan,tan,tan
 tʰ,,a,ŋ,tʰaŋ,tang,tang
-#tʰ,j,u,ŋ,tʰjuŋ,tiong,tiong
+#tʰ,j,ʊ,ŋ,tʰjʊŋ,tiong,tiong
 tʰ,j,ə,,tʰjɛ,tie,tie
 #tʰ,j,ə,u,tʰjou,tiu,tiu
 #tʰ,j,a,,tʰja,tia,tia
@@ -250,7 +250,7 @@ n,,i,,ni,ni,ni
 n,,i,n,nin,nin,nin #!
 n,,i,ŋ,niŋ,ning,ning
 n,,u,,nu,nu,nu
-n,,u,ŋ,nuŋ,nong,nong
+n,,ʊ,ŋ,nʊŋ,nong,nong
 n,,y,,ny,nü,nv
 #n,,y,n,nyn,nün,nvn
 n,,ə,,nɤ,ne,ne #!
@@ -263,7 +263,7 @@ n,,a,i,nai,nai,nai
 n,,a,u,nau,nao,nao
 n,,a,n,nan,nan,nan
 n,,a,ŋ,naŋ,nang,nang #!
-#n,j,u,ŋ,njuŋ,niong,niong
+#n,j,ʊ,ŋ,njʊŋ,niong,niong
 n,j,ə,,njɛ,nie,nie
 n,j,ə,u,njou,niu,niu
 #n,j,a,,nja,nia,nia
@@ -285,7 +285,7 @@ l,,i,,li,li,li
 l,,i,n,lin,lin,lin
 l,,i,ŋ,liŋ,ling,ling
 l,,u,,lu,lu,lu
-l,,u,ŋ,luŋ,long,long
+l,,ʊ,ŋ,lʊŋ,long,long
 l,,y,,ly,lü,lv
 #l,,y,n,lyn,lün,lvn
 l,,ə,,lɤ,le,le #!
@@ -298,7 +298,7 @@ l,,a,i,lai,lai,lai
 l,,a,u,lau,lao,lao
 l,,a,n,lan,lan,lan
 l,,a,ŋ,laŋ,lang,lang
-#l,j,u,ŋ,ljuŋ,liong,liong
+#l,j,ʊ,ŋ,ljʊŋ,liong,liong
 l,j,ə,,ljɛ,lie,lie
 l,j,ə,u,ljou,liu,liu
 l,j,a,,lja,lia,lia #!
@@ -320,7 +320,7 @@ l,ɥ,ə,,lyɛ,lüe,lve
 #g,,i,n,gin,gin,gin
 #g,,i,ŋ,giŋ,ging,ging
 g,,u,,gu,gu,gu
-g,,u,ŋ,guŋ,gong,gong
+g,,ʊ,ŋ,gʊŋ,gong,gong
 #g,,y,,gy,gü,gv
 #g,,y,n,gyn,gün,gvn
 g,,ə,,gɤ,ge,ge
@@ -333,7 +333,7 @@ g,,a,i,gai,gai,gai
 g,,a,u,gau,gao,gao
 g,,a,n,gan,gan,gan
 g,,a,ŋ,gaŋ,gang,gang
-#g,j,u,ŋ,gjuŋ,giong,giong
+#g,j,ʊ,ŋ,gjʊŋ,giong,giong
 #g,j,ə,,gjɛ,gie,gie
 #g,j,ə,u,gjou,giu,giu
 #g,j,a,,gja,gia,gia
@@ -355,7 +355,7 @@ g,w,a,ŋ,guaŋ,guang,guang
 #k,,i,n,kin,kin,kin
 #k,,i,ŋ,kiŋ,king,king
 k,,u,,ku,ku,ku
-k,,u,ŋ,kuŋ,kong,kong
+k,,ʊ,ŋ,kʊŋ,kong,kong
 #k,,y,,ky,kü,kv
 #k,,y,n,kyn,kün,kvn
 k,,ə,,kɤ,ke,ke
@@ -368,7 +368,7 @@ k,,a,i,kai,kai,kai
 k,,a,u,kau,kao,kao
 k,,a,n,kan,kan,kan
 k,,a,ŋ,kaŋ,kang,kang
-#k,j,u,ŋ,kjuŋ,kiong,kiong
+#k,j,ʊ,ŋ,kjʊŋ,kiong,kiong
 #k,j,ə,,kjɛ,kie,kie
 #k,j,ə,u,kjou,kiu,kiu
 #k,j,a,,kja,kia,kia
@@ -390,7 +390,7 @@ k,w,a,ŋ,kuaŋ,kuang,kuang
 #x,,i,n,xin,hin,hin
 #x,,i,ŋ,xiŋ,hing,hing
 x,,u,,xu,hu,hu
-x,,u,ŋ,xuŋ,hong,hong
+x,,ʊ,ŋ,xʊŋ,hong,hong
 #x,,y,,xy,hü,hv
 #x,,y,n,xyn,hün,hvn
 x,,ə,,xɤ,he,he
@@ -403,7 +403,7 @@ x,,a,i,xai,hai,hai
 x,,a,u,xau,hao,hao
 x,,a,n,xan,han,han
 x,,a,ŋ,xaŋ,hang,hang
-#x,j,u,ŋ,xjuŋ,hiong,hiong
+#x,j,ʊ,ŋ,xjʊŋ,hiong,hiong
 #x,j,ə,,xjɛ,hie,hie
 #x,j,ə,u,xjou,hiu,hiu
 #x,j,a,,xja,hia,hia
@@ -425,7 +425,7 @@ t͡ɕ,,i,,t͡ɕi,ji,ji
 t͡ɕ,,i,n,t͡ɕin,jin,jin
 t͡ɕ,,i,ŋ,t͡ɕiŋ,jing,jing
 t͡ɕ,,u,,t͡ɕu,ju,ju
-#t͡ɕ,,u,ŋ,t͡ɕuŋ,jong,jong
+#t͡ɕ,,ʊ,ŋ,t͡ɕʊŋ,jong,jong
 t͡ɕ,,y,,t͡ɕy,ju,jv
 t͡ɕ,,y,n,t͡ɕyn,jun,jvn
 #t͡ɕ,,ə,,t͡ɕɤ,je,je
@@ -438,7 +438,7 @@ t͡ɕ,,y,n,t͡ɕyn,jun,jvn
 #t͡ɕ,,a,u,t͡ɕau,jao,jao
 #t͡ɕ,,a,n,t͡ɕan,jan,jan
 #t͡ɕ,,a,ŋ,t͡ɕaŋ,jang,jang
-t͡ɕ,j,u,ŋ,t͡ɕjuŋ,jiong,jiong #!
+t͡ɕ,j,ʊ,ŋ,t͡ɕjʊŋ,jiong,jiong #!
 t͡ɕ,j,ə,,t͡ɕjɛ,jie,jie
 t͡ɕ,j,ə,u,t͡ɕjou,jiu,jiu
 t͡ɕ,j,a,,t͡ɕja,jia,jia
@@ -460,7 +460,7 @@ t͡ɕʰ,,i,,t͡ɕʰi,qi,qi
 t͡ɕʰ,,i,n,t͡ɕʰin,qin,qin
 t͡ɕʰ,,i,ŋ,t͡ɕʰiŋ,qing,qing
 t͡ɕʰ,,u,,t͡ɕʰu,qu,qu
-#t͡ɕʰ,,u,ŋ,t͡ɕʰuŋ,qong,qong
+#t͡ɕʰ,,ʊ,ŋ,t͡ɕʰʊŋ,qong,qong
 t͡ɕʰ,,y,,t͡ɕʰy,qu,qv
 t͡ɕʰ,,y,n,t͡ɕʰyn,qun,qvn #!
 #t͡ɕʰ,,ə,,t͡ɕʰɤ,qe,qe
@@ -473,7 +473,7 @@ t͡ɕʰ,,y,n,t͡ɕʰyn,qun,qvn #!
 #t͡ɕʰ,,a,u,t͡ɕʰau,qao,qao
 #t͡ɕʰ,,a,n,t͡ɕʰan,qan,qan
 #t͡ɕʰ,,a,ŋ,t͡ɕʰaŋ,qang,qang
-t͡ɕʰ,j,u,ŋ,t͡ɕʰjuŋ,qiong,qiong #!
+t͡ɕʰ,j,ʊ,ŋ,t͡ɕʰjʊŋ,qiong,qiong #!
 t͡ɕʰ,j,ə,,t͡ɕʰjɛ,qie,qie
 t͡ɕʰ,j,ə,u,t͡ɕʰjou,qiu,qiu
 t͡ɕʰ,j,a,,t͡ɕʰja,qia,qia
@@ -495,7 +495,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 ɕ,,i,n,ɕin,xin,xin
 ɕ,,i,ŋ,ɕiŋ,xing,xing
 ɕ,,u,,ɕu,xu,xu
-#ɕ,,u,ŋ,ɕuŋ,xong,xong
+#ɕ,,ʊ,ŋ,ɕʊŋ,xong,xong
 ɕ,,y,,ɕy,xu,xv
 ɕ,,y,n,ɕyn,xun,xvn
 #ɕ,,ə,,ɕɤ,xe,xe
@@ -508,7 +508,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 #ɕ,,a,u,ɕau,xao,xao
 #ɕ,,a,n,ɕan,xan,xan
 #ɕ,,a,ŋ,ɕaŋ,xang,xang
-ɕ,j,u,ŋ,ɕjuŋ,xiong,xiong
+ɕ,j,ʊ,ŋ,ɕjʊŋ,xiong,xiong
 ɕ,j,ə,,ɕjɛ,xie,xie
 ɕ,j,ə,u,ɕjou,xiu,xiu
 ɕ,j,a,,ɕja,xia,xia
@@ -530,7 +530,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 #ʈ͡ʂ,,i,n,ʈ͡ʂin,zhin,zhin
 #ʈ͡ʂ,,i,ŋ,ʈ͡ʂiŋ,zhing,zhing
 ʈ͡ʂ,,u,,ʈ͡ʂu,zhu,zhu
-ʈ͡ʂ,,u,ŋ,ʈ͡ʂuŋ,zhong,zhong
+ʈ͡ʂ,,ʊ,ŋ,ʈ͡ʂʊŋ,zhong,zhong
 #ʈ͡ʂ,,y,,ʈ͡ʂy,zhü,zhv
 #ʈ͡ʂ,,y,n,ʈ͡ʂyn,zhün,zhvn
 ʈ͡ʂ,,ə,,ʈ͡ʂɤ,zhe,zhe
@@ -543,7 +543,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 ʈ͡ʂ,,a,u,ʈ͡ʂau,zhao,zhao
 ʈ͡ʂ,,a,n,ʈ͡ʂan,zhan,zhan
 ʈ͡ʂ,,a,ŋ,ʈ͡ʂaŋ,zhang,zhang
-#ʈ͡ʂ,j,u,ŋ,ʈ͡ʂjuŋ,zhiong,zhiong
+#ʈ͡ʂ,j,ʊ,ŋ,ʈ͡ʂjʊŋ,zhiong,zhiong
 #ʈ͡ʂ,j,ə,,ʈ͡ʂjɛ,zhie,zhie
 #ʈ͡ʂ,j,ə,u,ʈ͡ʂjou,zhiu,zhiu
 #ʈ͡ʂ,j,a,,ʈ͡ʂja,zhia,zhia
@@ -565,7 +565,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 #ʈ͡ʂʰ,,i,n,ʈ͡ʂʰin,chin,chin
 #ʈ͡ʂʰ,,i,ŋ,ʈ͡ʂʰiŋ,ching,ching
 ʈ͡ʂʰ,,u,,ʈ͡ʂʰu,chu,chu
-ʈ͡ʂʰ,,u,ŋ,ʈ͡ʂʰuŋ,chong,chong
+ʈ͡ʂʰ,,ʊ,ŋ,ʈ͡ʂʰʊŋ,chong,chong
 #ʈ͡ʂʰ,,y,,ʈ͡ʂʰy,chü,chv
 #ʈ͡ʂʰ,,y,n,ʈ͡ʂʰyn,chün,chvn
 ʈ͡ʂʰ,,ə,,ʈ͡ʂʰɤ,che,che
@@ -578,7 +578,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 ʈ͡ʂʰ,,a,u,ʈ͡ʂʰau,chao,chao
 ʈ͡ʂʰ,,a,n,ʈ͡ʂʰan,chan,chan
 ʈ͡ʂʰ,,a,ŋ,ʈ͡ʂʰaŋ,chang,chang
-#ʈ͡ʂʰ,j,u,ŋ,ʈ͡ʂʰjuŋ,chiong,chiong
+#ʈ͡ʂʰ,j,ʊ,ŋ,ʈ͡ʂʰjʊŋ,chiong,chiong
 #ʈ͡ʂʰ,j,ə,,ʈ͡ʂʰjɛ,chie,chie
 #ʈ͡ʂʰ,j,ə,u,ʈ͡ʂʰjou,chiu,chiu
 #ʈ͡ʂʰ,j,a,,ʈ͡ʂʰja,chia,chia
@@ -600,7 +600,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 #ʂ,,i,n,ʂin,shin,shin
 #ʂ,,i,ŋ,ʂiŋ,shing,shing
 ʂ,,u,,ʂu,shu,shu
-#ʂ,,u,ŋ,ʂuŋ,shong,shong
+#ʂ,,ʊ,ŋ,ʂʊŋ,shong,shong
 #ʂ,,y,,ʂy,shü,shv
 #ʂ,,y,n,ʂyn,shün,shvn
 ʂ,,ə,,ʂɤ,she,she
@@ -613,7 +613,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 ʂ,,a,u,ʂau,shao,shao
 ʂ,,a,n,ʂan,shan,shan
 ʂ,,a,ŋ,ʂaŋ,shang,shang
-#ʂ,j,u,ŋ,ʂjuŋ,shiong,shiong
+#ʂ,j,ʊ,ŋ,ʂjʊŋ,shiong,shiong
 #ʂ,j,ə,,ʂjɛ,shie,shie
 #ʂ,j,ə,u,ʂjou,shiu,shiu
 #ʂ,j,a,,ʂja,shia,shia
@@ -635,7 +635,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 #ʐ,,i,n,ʐin,rin,rin
 #ʐ,,i,ŋ,ʐiŋ,ring,ring
 ʐ,,u,,ʐu,ru,ru
-ʐ,,u,ŋ,ʐuŋ,rong,rong
+ʐ,,ʊ,ŋ,ʐʊŋ,rong,rong
 #ʐ,,y,,ʐy,rü,rv
 #ʐ,,y,n,ʐyn,rün,rvn
 ʐ,,ə,,ʐɤ,re,re #!
@@ -648,7 +648,7 @@ t͡ɕʰ,ɥ,a,n,t͡ɕʰyɛn,quan,qvan
 ʐ,,a,u,ʐau,rao,rao
 ʐ,,a,n,ʐan,ran,ran
 ʐ,,a,ŋ,ʐaŋ,rang,rang
-#ʐ,j,u,ŋ,ʐjuŋ,riong,riong
+#ʐ,j,ʊ,ŋ,ʐjʊŋ,riong,riong
 #ʐ,j,ə,,ʐjɛ,rie,rie
 #ʐ,j,ə,u,ʐjou,riu,riu
 #ʐ,j,a,,ʐja,ria,ria
@@ -670,7 +670,7 @@ t͡s,,i,,t͡sɿ,zi,zi
 #t͡s,,i,n,t͡sin,zin,zin
 #t͡s,,i,ŋ,t͡siŋ,zing,zing
 t͡s,,u,,t͡su,zu,zu
-t͡s,,u,ŋ,t͡suŋ,zong,zong
+t͡s,,ʊ,ŋ,t͡sʊŋ,zong,zong
 #t͡s,,y,,t͡sy,zü,zv
 #t͡s,,y,n,t͡syn,zün,zvn
 t͡s,,ə,,t͡sɤ,ze,ze
@@ -683,7 +683,7 @@ t͡s,,a,i,t͡sai,zai,zai
 t͡s,,a,u,t͡sau,zao,zao
 t͡s,,a,n,t͡san,zan,zan
 t͡s,,a,ŋ,t͡saŋ,zang,zang
-#t͡s,j,u,ŋ,t͡sjuŋ,ziong,ziong
+#t͡s,j,ʊ,ŋ,t͡sjʊŋ,ziong,ziong
 #t͡s,j,ə,,t͡sjɛ,zie,zie
 #t͡s,j,ə,u,t͡sjou,ziu,ziu
 #t͡s,j,a,,t͡sja,zia,zia
@@ -705,7 +705,7 @@ t͡sʰ,,i,,t͡sʰɿ,ci,ci
 #t͡sʰ,,i,n,t͡sʰin,cin,cin
 #t͡sʰ,,i,ŋ,t͡sʰiŋ,cing,cing
 t͡sʰ,,u,,t͡sʰu,cu,cu
-t͡sʰ,,u,ŋ,t͡sʰuŋ,cong,cong
+t͡sʰ,,ʊ,ŋ,t͡sʰʊŋ,cong,cong
 #t͡sʰ,,y,,t͡sʰy,cü,cv
 #t͡sʰ,,y,n,t͡sʰyn,cün,cvn
 t͡sʰ,,ə,,t͡sʰɤ,ce,ce
@@ -718,7 +718,7 @@ t͡sʰ,,a,i,t͡sʰai,cai,cai
 t͡sʰ,,a,u,t͡sʰau,cao,cao
 t͡sʰ,,a,n,t͡sʰan,can,can
 t͡sʰ,,a,ŋ,t͡sʰaŋ,cang,cang
-#t͡sʰ,j,u,ŋ,t͡sʰjuŋ,ciong,ciong
+#t͡sʰ,j,ʊ,ŋ,t͡sʰjʊŋ,ciong,ciong
 #t͡sʰ,j,ə,,t͡sʰjɛ,cie,cie
 #t͡sʰ,j,ə,u,t͡sʰjou,ciu,ciu
 #t͡sʰ,j,a,,t͡sʰja,cia,cia
@@ -740,7 +740,7 @@ s,,i,,sɿ,si,si
 #s,,i,n,sin,sin,sin
 #s,,i,ŋ,siŋ,sing,sing
 s,,u,,su,su,su
-s,,u,ŋ,suŋ,song,song
+s,,ʊ,ŋ,sʊŋ,song,song
 #s,,y,,sy,sü,sv
 #s,,y,n,syn,sün,svn
 s,,ə,,sɤ,se,se
@@ -753,7 +753,7 @@ s,,a,i,sai,sai,sai
 s,,a,u,sau,sao,sao
 s,,a,n,san,san,san
 s,,a,ŋ,saŋ,sang,sang
-#s,j,u,ŋ,sjuŋ,siong,siong
+#s,j,ʊ,ŋ,sjʊŋ,siong,siong
 #s,j,ə,,sjɛ,sie,sie
 #s,j,ə,u,sjou,siu,siu
 #s,j,a,,sja,sia,sia

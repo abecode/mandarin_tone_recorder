@@ -100,6 +100,27 @@ class RecordingViewTests(TestCase):
         self.assertContains(response, session.current_stimulus.stable_id)
         self.assertContains(response, "recorder-config")
         self.assertContains(response, "recorder.js?v=20260614-2")
+        self.assertContains(response, "Session target")
+        self.assertContains(response, "Base syllables")
+        self.assertContains(response, "Syllable-tone items")
+        self.assertEqual(
+            response.context["recorder_config"]["target_duration_seconds"],
+            session.target_duration_seconds,
+        )
+        self.assertEqual(
+            response.context["recorder_config"]["started_at"],
+            session.started_at.isoformat(),
+        )
+        self.assertEqual(
+            response.context["recorder_config"]["progress"],
+            {
+                "base_covered": 0,
+                "base_total": 1,
+                "tone_covered": 0,
+                "tone_total": 2,
+                "show_tone_progress": True,
+            },
+        )
         self.assertIn("csrftoken", response.cookies)
 
     def test_anonymous_recorder_posts_with_page_csrf_cookie(self) -> None:
@@ -151,6 +172,16 @@ class RecordingViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["ok"])
+        self.assertEqual(
+            response.json()["progress"],
+            {
+                "base_covered": 1,
+                "base_total": 1,
+                "tone_covered": 1,
+                "tone_total": 2,
+                "show_tone_progress": True,
+            },
+        )
         attempt = RecordingAttempt.objects.get(session=session)
         self.assertEqual(attempt.status, RecordingAttempt.Status.ACCEPTED)
         self.assertTrue(attempt.raw_audio.name.endswith(".webm"))

@@ -10,6 +10,37 @@
       <h1>Ready to record</h1>
       <p>Allow microphone access, then read each prompt aloud.</p>
       <button type="button" data-action="begin">Start recording</button>
+      <div class="recorder-progress" data-progress>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Session target</span>
+            <span data-progress-session-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-session-bar></span>
+          </div>
+        </div>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Base syllables</span>
+            <span data-progress-base-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-base-bar></span>
+          </div>
+        </div>
+        {% if recorder_config.progress.show_tone_progress %}
+          <div class="recorder-progress-item" data-progress-tone>
+            <div class="recorder-progress-label">
+              <span>Syllable-tone items</span>
+              <span data-progress-tone-count></span>
+            </div>
+            <div class="recorder-progress-bar" aria-hidden="true">
+              <span data-progress-tone-bar></span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
       <p class="recorder-status" data-start-status role="status"></p>
     </div>
 
@@ -17,6 +48,37 @@
       <p class="recorder-index" data-index></p>
       <div class="recorder-stimulus" data-stimulus></div>
       <div class="recorder-details" data-details></div>
+      <div class="recorder-progress" data-progress>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Session target</span>
+            <span data-progress-session-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-session-bar></span>
+          </div>
+        </div>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Base syllables</span>
+            <span data-progress-base-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-base-bar></span>
+          </div>
+        </div>
+        {% if recorder_config.progress.show_tone_progress %}
+          <div class="recorder-progress-item" data-progress-tone>
+            <div class="recorder-progress-label">
+              <span>Syllable-tone items</span>
+              <span data-progress-tone-count></span>
+            </div>
+            <div class="recorder-progress-bar" aria-hidden="true">
+              <span data-progress-tone-bar></span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
       <div class="recorder-actions">
         <button type="button" class="button-secondary" data-action="redo">Redo</button>
         <button type="button" class="button-accept" data-action="next">Next</button>
@@ -39,6 +101,37 @@
       <p class="step-label">Session target reached</p>
       <h1>Thank you for completing your session</h1>
       <p>You may finish now or continue recording additional prompts.</p>
+      <div class="recorder-progress" data-target-progress>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Session target</span>
+            <span data-progress-session-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-session-bar></span>
+          </div>
+        </div>
+        <div class="recorder-progress-item">
+          <div class="recorder-progress-label">
+            <span>Base syllables</span>
+            <span data-progress-base-count></span>
+          </div>
+          <div class="recorder-progress-bar" aria-hidden="true">
+            <span data-progress-base-bar></span>
+          </div>
+        </div>
+        {% if recorder_config.progress.show_tone_progress %}
+          <div class="recorder-progress-item" data-progress-tone>
+            <div class="recorder-progress-label">
+              <span>Syllable-tone items</span>
+              <span data-progress-tone-count></span>
+            </div>
+            <div class="recorder-progress-bar" aria-hidden="true">
+              <span data-progress-tone-bar></span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
       <div class="recorder-actions">
         <button type="button" class="button-accept" data-action="continue">Continue</button>
         <button type="button" class="button-secondary" data-action="finish">Finish session</button>

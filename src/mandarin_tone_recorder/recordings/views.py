@@ -29,6 +29,7 @@ from mandarin_tone_recorder.recordings.services import (
     abort_recording_session,
     continue_after_target,
     finish_recording_session,
+    progress_for_enrollment,
     record_accepted_attempt,
     record_retry_attempt,
     start_recording_session,
@@ -129,6 +130,7 @@ def session_page(
             "recordings/session_complete.html",
             {"session": session},
         )
+    progress = progress_for_enrollment(session.enrollment)
     return render(
         request,
         "recordings/recorder.html",
@@ -142,6 +144,9 @@ def session_page(
                 "target_pending": bool(
                     session.target_reached_at and not session.continued_after_target
                 ),
+                "started_at": session.started_at.isoformat(),
+                "target_duration_seconds": session.target_duration_seconds,
+                "progress": progress.as_dict(),
                 "max_duration_seconds": getattr(
                     settings,
                     "RECORDING_MAX_DURATION_SECONDS",
@@ -207,6 +212,7 @@ def accepted_attempt(
                 if result.session_done
                 else result.attempt.stimulus_index + 1
             ),
+            "progress": progress_for_enrollment(session.enrollment).as_dict(),
         }
     )
 

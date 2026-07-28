@@ -29,6 +29,7 @@ from mandarin_tone_recorder.recordings.services import (
     choose_next_stimulus,
     continue_after_target,
     finish_recording_session,
+    progress_for_enrollment,
     record_accepted_attempt,
     record_retry_attempt,
     start_recording_session,
@@ -147,6 +148,92 @@ class RecordingServiceTests(TestCase):
         session.refresh_from_db()
         self.assertEqual(session.current_stimulus_index, 2)
         self.assertNotEqual(session.current_stimulus, self.stimuli[0])
+
+    def test_progress_counts_accepted_bases_and_tone_items_for_enrollment(self) -> None:
+        session = start_recording_session(self.enrollment, chooser=self.first)
+        other_session = RecordingSession.objects.create(
+            enrollment=self.enrollment,
+            status=RecordingSession.Status.ABORTED,
+            target_duration_seconds=60,
+            ended_at=timezone.now(),
+        )
+        RecordingAttempt.objects.create(
+            session=other_session,
+            stimulus=self.stimuli[1],
+            stimulus_index=1,
+            status=RecordingAttempt.Status.ACCEPTED,
+            raw_audio="previous.webm",
+        )
+        RecordingAttempt.objects.create(
+            session=other_session,
+            stimulus=self.stimuli[2],
+            stimulus_index=2,
+            status=RecordingAttempt.Status.SPEAKER_REJECTED,
+        )
+
+        progress = progress_for_enrollment(self.enrollment)
+
+        self.assertEqual(progress.base_covered, 1)
+        self.assertEqual(progress.base_total, 1)
+        self.assertEqual(progress.tone_covered, 1)
+        self.assertEqual(progress.tone_total, 3)
+        self.assertTrue(progress.show_tone_progress)
+
+        record_accepted_attempt(
+            session,
+            self.stimuli[0],
+            raw_audio=self.audio(),
+            duration_seconds=1,
+            mime_type="audio/webm",
+            chooser=self.first,
+        )
+
+        progress = progress_for_enrollment(self.enrollment)
+
+        self.assertEqual(progress.base_covered, 1)
+        self.assertEqual(progress.tone_covered, 2)
+
+    def test_non_tone_progress_only_counts_base_syllables(self) -> None:
+        non_tone_experiment = Experiment.objects.get(
+            slug="mandarin-non-tone-reading"
+        )
+        unspecified = Stimulus.objects.create(
+            stable_id="ma_unspecified",
+            base_syllable=self.base,
+            condition=Stimulus.Condition.TONE_UNSPECIFIED,
+            target_tone=None,
+            display_text="ma",
+        )
+        ExperimentStimulus.objects.create(
+            experiment=non_tone_experiment,
+            stimulus=unspecified,
+        )
+        enrollment = Enrollment.objects.create(
+            participant=self.participant,
+            experiment=non_tone_experiment,
+            routing_reason="Non-tone progress.",
+        )
+        session = RecordingSession.objects.create(
+            enrollment=enrollment,
+            target_duration_seconds=60,
+            current_stimulus=unspecified,
+            current_stimulus_index=1,
+        )
+        RecordingAttempt.objects.create(
+            session=session,
+            stimulus=unspecified,
+            stimulus_index=1,
+            status=RecordingAttempt.Status.ACCEPTED,
+            raw_audio="non-tone.webm",
+        )
+
+        progress = progress_for_enrollment(enrollment)
+
+        self.assertEqual(progress.base_covered, 1)
+        self.assertEqual(progress.base_total, 1)
+        self.assertIsNone(progress.tone_covered)
+        self.assertIsNone(progress.tone_total)
+        self.assertFalse(progress.show_tone_progress)
 
     def test_assignment_prefers_stimulus_with_fewer_global_acceptances(self) -> None:
         other_participant = Participant.objects.create()

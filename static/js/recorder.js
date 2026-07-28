@@ -31,6 +31,8 @@ if (root && configElement) {
   let currentStimulus = config.stimulus;
   let currentIndex = config.stimulus_index;
   let continuedAfterTarget = config.continued_after_target;
+  let progress = config.progress;
+  const sessionStartedAt = Date.parse(config.started_at) || Date.now();
   let busy = false;
 
   function showScreen(name) {
@@ -62,6 +64,51 @@ if (root && configElement) {
 
   function endpoint(suffix) {
     return `/recordings/sessions/${config.session_id}/${suffix}`;
+  }
+
+  function percent(covered, total) {
+    if (!total) return 0;
+    return Math.min(100, Math.max(0, (covered / total) * 100));
+  }
+
+  function formatDuration(totalSeconds) {
+    const boundedSeconds = Math.max(0, Math.floor(totalSeconds));
+    const minutes = Math.floor(boundedSeconds / 60);
+    const seconds = String(boundedSeconds % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+
+  function sessionElapsedSeconds() {
+    return Math.max(0, (Date.now() - sessionStartedAt) / 1000);
+  }
+
+  function renderProgress() {
+    for (const container of root.querySelectorAll(
+      "[data-progress], [data-target-progress]",
+    )) {
+      const sessionCount = container.querySelector("[data-progress-session-count]");
+      const sessionBar = container.querySelector("[data-progress-session-bar]");
+      const baseCount = container.querySelector("[data-progress-base-count]");
+      const baseBar = container.querySelector("[data-progress-base-bar]");
+      const toneCount = container.querySelector("[data-progress-tone-count]");
+      const toneBar = container.querySelector("[data-progress-tone-bar]");
+
+      if (sessionCount && sessionBar) {
+        const elapsed = sessionElapsedSeconds();
+        sessionCount.textContent =
+          `${formatDuration(elapsed)} / ${formatDuration(config.target_duration_seconds)}`;
+        sessionBar.style.width =
+          `${percent(elapsed, config.target_duration_seconds)}%`;
+      }
+      if (baseCount && baseBar) {
+        baseCount.textContent = `${progress.base_covered} / ${progress.base_total}`;
+        baseBar.style.width = `${percent(progress.base_covered, progress.base_total)}%`;
+      }
+      if (toneCount && toneBar && progress.show_tone_progress) {
+        toneCount.textContent = `${progress.tone_covered} / ${progress.tone_total}`;
+        toneBar.style.width = `${percent(progress.tone_covered, progress.tone_total)}%`;
+      }
+    }
   }
 
   function renderStimulus() {
@@ -218,6 +265,8 @@ if (root && configElement) {
       form.append("mime_type", blob.type);
 
       const result = await post(endpoint("attempts/accepted/"), { body: form });
+      progress = result.progress || progress;
+      renderProgress();
       if (result.session_done) {
         stopMicrophone();
         showScreen("finished");
@@ -350,5 +399,7 @@ if (root && configElement) {
   });
 
   renderStimulus();
+  renderProgress();
+  window.setInterval(renderProgress, 1000);
   showScreen(config.target_pending ? "target" : "start");
 }

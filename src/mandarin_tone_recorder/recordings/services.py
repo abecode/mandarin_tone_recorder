@@ -12,6 +12,8 @@ from django.utils import timezone
 
 from mandarin_tone_recorder.experiments.models import (
     Enrollment,
+    Experiment,
+    ExperimentStimulus,
     Stimulus,
 )
 from mandarin_tone_recorder.recordings.models import (
@@ -48,6 +50,78 @@ class AttemptResult:
     next_stimulus: Stimulus | None
     session_done: bool
     target_reached_now: bool
+
+
+@dataclass(frozen=True)
+class RecordingProgress:
+    """Enrollment-level accepted-recording coverage for participant feedback."""
+
+    base_covered: int
+    base_total: int
+    tone_covered: int | None
+    tone_total: int | None
+
+    @property
+    def show_tone_progress(self) -> bool:
+        """Return whether syllable-tone coverage applies to this experiment."""
+        return self.tone_covered is not None and self.tone_total is not None
+
+    def as_dict(self) -> dict[str, int | bool | None]:
+        """Return a JSON/template friendly representation."""
+        return {
+            "base_covered": self.base_covered,
+            "base_total": self.base_total,
+            "tone_covered": self.tone_covered,
+            "tone_total": self.tone_total,
+            "show_tone_progress": self.show_tone_progress,
+        }
+
+
+def progress_for_enrollment(enrollment: Enrollment) -> RecordingProgress:
+    """Return accepted stimulus coverage accumulated across an enrollment."""
+    # The denominator is the active catalog for this experiment, not all stimuli.
+    active_memberships = ExperimentStimulus.objects.filter(
+        experiment=enrollment.experiment,
+        is_active=True,
+    )
+    base_total = active_memberships.values(
+        "stimulus__base_syllable_id"
+    ).distinct().count()
+
+    # Coverage spans all recording sessions for this enrollment, but only accepted
+    # attempts count toward participant progress.
+    accepted_attempts = RecordingAttempt.objects.filter(
+        session__enrollment=enrollment,
+        status=RecordingAttempt.Status.ACCEPTED,
+        stimulus__experiment_memberships__experiment=enrollment.experiment,
+        stimulus__experiment_memberships__is_active=True,
+    )
+    base_covered = accepted_attempts.values(
+        "stimulus__base_syllable_id"
+    ).distinct().count()
+
+    # Non-tone experiments only ask for base syllable coverage.
+    if enrollment.experiment.track != Experiment.Track.TONE:
+        return RecordingProgress(
+            base_covered=base_covered,
+            base_total=base_total,
+            tone_covered=None,
+            tone_total=None,
+        )
+
+    # Tone experiments also track distinct syllable-tone items such as ma1 vs ma2.
+    tone_memberships = active_memberships.filter(
+        stimulus__condition=Stimulus.Condition.TONE_BEARING,
+    )
+    tone_attempts = accepted_attempts.filter(
+        stimulus__condition=Stimulus.Condition.TONE_BEARING,
+    )
+    return RecordingProgress(
+        base_covered=base_covered,
+        base_total=base_total,
+        tone_covered=tone_attempts.values("stimulus_id").distinct().count(),
+        tone_total=tone_memberships.values("stimulus_id").distinct().count(),
+    )
 
 
 def choose_next_stimulus(

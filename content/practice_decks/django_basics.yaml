@@ -1,0 +1,67 @@
+slug: django_basics
+version: 1
+title: Django Basics
+activity_type: reading_speaking
+response:
+  type: audio
+items:
+- prompts:
+    hanzi: 模型
+  hints:
+    pinyin: mo2 xing2
+- prompts:
+    hanzi: 视图
+  hints:
+    pinyin: shi4 tu2
+- prompts:
+    hanzi: 模板
+  hints:
+    pinyin: mu2 ban3
+- prompts:
+    hanzi: 表单
+  hints:
+    pinyin: biao3 dan1
+- prompts:
+    hanzi: 管理后台
+  hints:
+    pinyin: guan3 li3 hou4 tai2
+- prompts:
+    hanzi: 网址
+  hints:
+    pinyin: wang3 zhi3
+- prompts:
+    hanzi: 网址配置
+  hints:
+    pinyin: wang3 zhi3 pei4 zhi4
+- prompts:
+    hanzi: 设置
+  hints:
+    pinyin: she4 zhi4
+- prompts:
+    hanzi: 迁移
+  hints:
+    pinyin: qian1 yi2
+- prompts:
+    hanzi: 数据库
+  hints:
+    pinyin: shu4 ju4 ku4
+- prompts:
+    hanzi: 查询集
+  hints:
+    pinyin: cha2 xun2 ji2
+- prompts:
+    hanzi: 管理命令
+  hints:
+    pinyin: guan3 li3 ming4 ling4
+- prompts:
+    hanzi: 中间件
+  hints:
+    pinyin: zhong1 jian1 jian4
+- prompts:
+    hanzi: 静态文件
+  hints:
+    pinyin: jing4 tai4 wen2 jian4
+- prompts:
+    hanzi: 媒体文件
+  hints:
+    pinyin: mei2 ti3 wen2 jian4

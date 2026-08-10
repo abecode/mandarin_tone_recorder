@@ -1,0 +1,203 @@
+slug: django_terminology
+version: 1
+title: django terminology
+activity_type: reading_speaking
+response:
+  type: audio
+items:
+- prompts:
+    hanzi: 'application: 应用'
+  hints:
+    pinyin: 'application:  ying4 yong4'
+- prompts:
+    hanzi: 'project: 项目'
+  hints:
+    pinyin: 'project:  xiang4 mu4'
+- prompts:
+    hanzi: 'model: 模型'
+  hints:
+    pinyin: 'model:  mo2 xing2'
+- prompts:
+    hanzi: 'view: 视图'
+  hints:
+    pinyin: 'view:  shi4 tu2'
+- prompts:
+    hanzi: 'template: 模板'
+  hints:
+    pinyin: 'template:  mu2 ban3'
+- prompts:
+    hanzi: 'admin panel: 管理后台'
+  hints:
+    pinyin: 'admin panel:  guan3 li3 hou4 tai2'
+- prompts:
+    hanzi: 'form: 表单'
+  hints:
+    pinyin: 'form:  biao3 dan1'
+- prompts:
+    hanzi: 'service: 服务'
+  hints:
+    pinyin: 'service:  fu2 wu4'
+- prompts:
+    hanzi: 'url: 网址'
+  hints:
+    pinyin: 'url:  wang3 zhi3'
+- prompts:
+    hanzi: 'url pattern: URL 模式'
+  hints:
+    pinyin: 'url pattern: URL  mo2 shi4'
+- prompts:
+    hanzi: 'url wiring: URL 配置'
+  hints:
+    pinyin: 'url wiring: URL  pei4 zhi4'
+- prompts:
+    hanzi: 'settings: 设置'
+  hints:
+    pinyin: 'settings:  she4 zhi4'
+- prompts:
+    hanzi: 'migration: 迁移'
+  hints:
+    pinyin: 'migration:  qian1 yi2'
+- prompts:
+    hanzi: 'database: 数据库'
+  hints:
+    pinyin: 'database:  shu4 ju4 ku4'
+- prompts:
+    hanzi: 'queryset: 查询集'
+  hints:
+    pinyin: 'queryset:  cha2 xun2 ji2'
+- prompts:
+    hanzi: 'object: 对象'
+  hints:
+    pinyin: 'object:  dui4 xiang4'
+- prompts:
+    hanzi: 'field: 字段'
+  hints:
+    pinyin: 'field:  zi4 duan4'
+- prompts:
+    hanzi: 'record: 记录'
+  hints:
+    pinyin: 'record:  ji4 lu4'
+- prompts:
+    hanzi: 'table: 表'
+  hints:
+    pinyin: 'table:  biao3'
+- prompts:
+    hanzi: 'primary key: 主键'
+  hints:
+    pinyin: 'primary key:  zhu3 jian4'
+- prompts:
+    hanzi: 'foreign key: 外键'
+  hints:
+    pinyin: 'foreign key:  wai4 jian4'
+- prompts:
+    hanzi: 'relationship: 关系'
+  hints:
+    pinyin: 'relationship:  guan1 xi4'
+- prompts:
+    hanzi: 'user: 用户'
+  hints:
+    pinyin: 'user:  yong4 hu4'
+- prompts:
+    hanzi: 'login: 登录'
+  hints:
+    pinyin: 'login:  deng1 lu4'
+- prompts:
+    hanzi: 'logout: 登出'
+  hints:
+    pinyin: 'logout:  deng1 chu1'
+- prompts:
+    hanzi: 'signup: 注册'
+  hints:
+    pinyin: 'signup:  zhu4 ce4'
+- prompts:
+    hanzi: 'permission: 权限'
+  hints:
+    pinyin: 'permission:  quan2 xian4'
+- prompts:
+    hanzi: 'authentication: 身份验证'
+  hints:
+    pinyin: 'authentication:  shen1 fen4 yan4 zheng4'
+- prompts:
+    hanzi: 'authorization: 授权'
+  hints:
+    pinyin: 'authorization:  shou4 quan2'
+- prompts:
+    hanzi: 'request: 请求'
+  hints:
+    pinyin: 'request:  qing3 qiu2'
+- prompts:
+    hanzi: 'response: 响应'
+  hints:
+    pinyin: 'response:  xiang3 ying4'
+- prompts:
+    hanzi: 'redirect: 重定向'
+  hints:
+    pinyin: 'redirect:  zhong4 ding4 xiang4'
+- prompts:
+    hanzi: 'route: 路由'
+  hints:
+    pinyin: 'route:  lu4 you2'
+- prompts:
+    hanzi: 'endpoint: 端点'
+  hints:
+    pinyin: 'endpoint:  duan1 dian3'
+- prompts:
+    hanzi: 'static file: 静态文件'
+  hints:
+    pinyin: 'static file:  jing4 tai4 wen2 jian4'
+- prompts:
+    hanzi: 'media file: 媒体文件'
+  hints:
+    pinyin: 'media file:  mei2 ti3 wen2 jian4'
+- prompts:
+    hanzi: 'session: 会话'
+  hints:
+    pinyin: 'session:  hui4 hua4'
+- prompts:
+    hanzi: 'cookie: Cookie'
+  hints:
+    pinyin: 'cookie: Cookie'
+- prompts:
+    hanzi: 'CSRF token: CSRF 令牌'
+  hints:
+    pinyin: 'CSRF token: CSRF  ling4 pai2'
+- prompts:
+    hanzi: 'middleware: 中间件'
+  hints:
+    pinyin: 'middleware:  zhong1 jian1 jian4'
+- prompts:
+    hanzi: 'context: 上下文'
+  hints:
+    pinyin: 'context:  shang4 xia4 wen2'
+- prompts:
+    hanzi: 'template tag: 模板标签'
+  hints:
+    pinyin: 'template tag:  mu2 ban3 biao1 qian1'
+- prompts:
+    hanzi: 'management command: 管理命令'
+  hints:
+    pinyin: 'management command:  guan3 li3 ming4 ling4'
+- prompts:
+    hanzi: 'fixture: 固定数据'
+  hints:
+    pinyin: 'fixture:  gu4 ding4 shu4 ju4'
+- prompts:
+    hanzi: 'test: 测试'
+  hints:
+    pinyin: 'test:  ce4 shi4'
+- prompts:
+    hanzi: 'unit test: 单元测试'
+  hints:
+    pinyin: 'unit test:  dan1 yuan2 ce4 shi4'
+- prompts:
+    hanzi: 'integration test: 集成测试'
+  hints:
+    pinyin: 'integration test:  ji2 cheng2 ce4 shi4'
+- prompts:
+    hanzi: 'deployment: 部署'
+  hints:
+    pinyin: 'deployment:  bu4 shu3'
+- prompts:
+    hanzi: 'development server: 开发服务器'
+  hints:
+    pinyin: 'development server:  kai1 fa1 fu2 wu4 qi4'

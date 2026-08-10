@@ -1,11 +1,18 @@
-"""Models for user-created Mandarin practice sessions."""
+"""Models for Mandarin practice decks and practice sessions."""
 
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 
 
+snake_case_slug_validator = RegexValidator(
+    regex=r"^$|^[a-z0-9_]+$",
+    message="Use lowercase letters, numbers, and underscores.",
+)
+
+
 class PracticeDeck(models.Model):
-    """A set of practice prompts created from user-provided text."""
+    """A set of practice prompts from pasted text or repo-backed content."""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -14,14 +21,31 @@ class PracticeDeck(models.Model):
         on_delete=models.SET_NULL,
         related_name="practice_decks",
     )
+    slug = models.SlugField(
+        blank=True,
+        max_length=120,
+        validators=(snake_case_slug_validator,),
+    )
+    version = models.PositiveIntegerField(blank=True, null=True)
     title = models.CharField(max_length=200)
     source_text = models.TextField()
+    activity_type = models.CharField(default="reading_speaking", max_length=50)
+    response_type = models.CharField(default="audio", max_length=50)
     is_shared = models.BooleanField(default=False)
+    is_builtin = models.BooleanField(default=False)
+    source_path = models.CharField(blank=True, max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ("-created_at", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("slug", "version"),
+                condition=~models.Q(slug="") & models.Q(version__isnull=False),
+                name="unique_practice_deck_slug_version",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.title

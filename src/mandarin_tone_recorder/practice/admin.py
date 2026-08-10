@@ -22,16 +22,22 @@ class PracticeDeckAdmin(admin.ModelAdmin):
     inlines = (PracticeItemInline,)
     fields = (
         "title",
+        "slug",
+        "version",
         "user",
+        "activity_type",
+        "response_type",
         "is_shared",
+        "is_builtin",
+        "source_path",
         "original_pasted_text",
         "created_at",
         "updated_at",
     )
-    list_display = ("title", "user", "is_shared", "created_at")
-    list_filter = ("is_shared", "created_at")
+    list_display = ("title", "slug", "version", "user", "is_shared", "is_builtin")
+    list_filter = ("is_shared", "is_builtin", "activity_type", "response_type")
     readonly_fields = ("original_pasted_text", "created_at", "updated_at")
-    search_fields = ("title", "source_text", "items__prompt_text")
+    search_fields = ("title", "slug", "source_text", "items__prompt_text")
 
     @admin.display(description="Original pasted text")
     def original_pasted_text(self, deck: PracticeDeck) -> str:

@@ -1,0 +1,11 @@
+slug: bla
+version: 1
+title: bla
+activity_type: reading_speaking
+response:
+  type: audio
+items:
+- prompts:
+    hanzi: 我唱一首歌
+  hints:
+    pinyin: wo3 chang4 yi1 shou3 ge1

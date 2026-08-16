@@ -128,6 +128,17 @@ class PracticeDeckYamlTests(TestCase):
 
 
 class PracticeDeckCommandTests(TestCase):
+    def test_import_practice_deck_command_imports_one_file(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "django_basics.yaml"
+            path.write_text(VALID_DECK_YAML, encoding="utf-8")
+            stdout = StringIO()
+
+            call_command("import_practice_deck", path, stdout=stdout)
+
+        self.assertTrue(PracticeDeck.objects.filter(slug="django_basics").exists())
+        self.assertIn("Imported 1 practice deck.", stdout.getvalue())
+
     def test_import_practice_decks_command_imports_directory(self) -> None:
         with TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "django_basics.yaml"

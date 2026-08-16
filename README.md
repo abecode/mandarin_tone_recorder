@@ -81,9 +81,13 @@ versioned with the code, and imported into Django on a new machine.
 The import/export management commands are:
 
 ```bash
+uv run python manage.py import_practice_deck content/practice_decks/django_basics.yaml
 uv run python manage.py import_practice_decks
 uv run python manage.py export_practice_deck <deck_id_or_slug> --deck-version 1
 ```
+
+Use `import_practice_deck` when working on one file. Use `import_practice_decks`
+to refresh every YAML deck in `content/practice_decks/`.
 
 The current YAML format uses snake_case keys:
 

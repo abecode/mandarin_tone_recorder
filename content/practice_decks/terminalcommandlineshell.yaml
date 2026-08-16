@@ -1,0 +1,294 @@
+slug: terminalcommandlineshell
+version: 1
+title: Terminal/Commandline/Shell
+activity_type: reading_speaking
+response:
+  type: audio
+items:
+- prompts:
+    hanzi: 命令
+  hints:
+    pinyin: ming4 ling4
+- prompts:
+    hanzi: 命令行 (大陆）/命令列（台湾）
+  hints:
+    pinyin: ming4 ling4 xing2  ( da4 lu4 ）/ ming4 ling4 lie4 （ tai2 wan1 ）
+- prompts:
+    hanzi: 命令行命令 (简体) / 命令列命令 (繁體)
+  hints:
+    pinyin: ming4 ling4 xing2 ming4 ling4  ( jian3 ti3 ) /  ming4 ling4 lie4 ming4
+      ling4  ( fan2 ti3 )
+- prompts:
+    hanzi: 终端
+  hints:
+    pinyin: zhong1 duan1
+- prompts:
+    hanzi: 命令解释器（命令解譯器）
+  hints:
+    pinyin: ming4 ling4 jie3 shi4 qi4 （ ming4 ling4 jie3 yi4 qi4 ）
+- prompts:
+    hanzi: 一段录音 （一段錄音）
+  hints:
+    pinyin: yi1 duan4 lu4 yin1  （ yi1 duan4 lu4 yin1 ）
+- prompts:
+    hanzi: 一个录音（一個錄音）
+  hints:
+    pinyin: yi2 ge4 lu4 yin1 （ yi1 ge4 lu4 yin1 ）
+- prompts:
+    hanzi: 一份录音（一份錄音）
+  hints:
+    pinyin: yi1 fen4 lu4 yin1 （ yi1 fen4 lu4 yin1 ）
+- prompts:
+    hanzi: 请录一段录音
+  hints:
+    pinyin: qing3 lu4 yi1 duan4 lu4 yin1
+- prompts:
+    hanzi: 每位参与者录十段录音
+  hints:
+    pinyin: mei3 wei4 can1 yu4 zhe3 lu4 shi2 duan4 lu4 yin1
+- prompts:
+    hanzi: 我们收集了五千段录音
+  hints:
+    pinyin: wo3 men5 shou1 ji2 le5 wu3 qian1 duan4 lu4 yin1
+- prompts:
+    hanzi: 一首歌
+  hints:
+    pinyin: yi1 shou3 ge1
+- prompts:
+    hanzi: 一集播客
+  hints:
+    pinyin: yi1 ji2 bo1 ke4
+- prompts:
+    hanzi: 一段录音
+  hints:
+    pinyin: yi1 duan4 lu4 yin1
+- prompts:
+    hanzi: 一个音频文件
+  hints:
+    pinyin: yi2 ge4 yin1 pin2 wen2 jian4
+- prompts:
+    hanzi: 这里有一篇关于儿童自动语音识别（ASR）的有趣文章，是我们之前试着申请资助的那家公司发表的。
+  hints:
+    pinyin: zhe4 li3 you3 yi1 pian1 guan1 yu2 er2 tong2 zi4 dong4 yu3 yin1 shi2 bie2
+      （ASR） de5 you3 qu4 wen2 zhang1 ， shi4 wo3 men5 zhi1 qian2 shi4 zhe5 shen1 qing3
+      zi1 zhu4 de5 na4 jia1 gong1 si1 fa1 biao3 de5 。
+- prompts:
+    hanzi: 这篇文章是写给非研究人员看的。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 shi4 xie3 gei3 fei1 yan2 jiu1 ren2 yuan2 kan4 de5
+      。
+- prompts:
+    hanzi: 這篇文章是寫給非研究人員看的。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 shi4 xie3 gei3 fei1 yan2 jiu1 ren2 yuan2 kan4 de5
+      。
+- prompts:
+    hanzi: 这篇文章面向非研究人员。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 mian4 xiang4 fei1 yan2 jiu1 ren2 yuan2 。
+- prompts:
+    hanzi: 這篇文章面向非研究人員。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 mian4 xiang4 fei1 yan2 jiu1 ren2 yuan2 。
+- prompts:
+    hanzi: 这篇文章写得比较通俗，适合非研究人员阅读。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 xie3 de2 bi3 jiao4 tong1 su2 ， shi4 he2 fei1 yan2
+      jiu1 ren2 yuan2 yue4 du2 。
+- prompts:
+    hanzi: 這篇文章寫得比較通俗，適合非研究人員閱讀。
+  hints:
+    pinyin: zhe4 pian1 wen2 zhang1 xie3 de2 bi3 jiao4 tong1 su2 ， shi4 he2 fei1 yan2
+      jiu1 ren2 yuan2 yue4 du2 。
+- prompts:
+    hanzi: 这是一篇科普文章。
+  hints:
+    pinyin: zhe4 shi4 yi1 pian1 ke1 pu3 wen2 zhang1 。
+- prompts:
+    hanzi: 這是一篇科普文章。
+  hints:
+    pinyin: zhe4 shi4 yi1 pian1 ke1 pu3 wen2 zhang1 。
+- prompts:
+    hanzi: 法令
+  hints:
+    pinyin: fa3 ling4
+- prompts:
+    hanzi: 号令
+  hints:
+    pinyin: hao4 ling4
+- prompts:
+    hanzi: 革命
+  hints:
+    pinyin: ge2 ming4
+- prompts:
+    hanzi: 夏令营(夏令營)
+  hints:
+    pinyin: xia4 ling4 ying2 ( xia4 ling4 ying2 )
+- prompts:
+    hanzi: 解释
+  hints:
+    pinyin: jie3 shi4
+- prompts:
+    hanzi: 解决
+  hints:
+    pinyin: jie3 jue2
+- prompts:
+    hanzi: 理解
+  hints:
+    pinyin: li3 jie3
+- prompts:
+    hanzi: 浏览器
+  hints:
+    pinyin: liu2 lan3 qi4
+- prompts:
+    hanzi: 打印机
+  hints:
+    pinyin: da3 yin4 ji1
+- prompts:
+    hanzi: 服务器
+  hints:
+    pinyin: fu2 wu4 qi4
+- prompts:
+    hanzi: 解释器
+  hints:
+    pinyin: jie3 shi4 qi4
+- prompts:
+    hanzi: 编译器
+  hints:
+    pinyin: bian1 yi4 qi4
+- prompts:
+    hanzi: 终端
+  hints:
+    pinyin: zhong1 duan1
+- prompts:
+    hanzi: 两端
+  hints:
+    pinyin: liang3 duan1
+- prompts:
+    hanzi: 尖端
+  hints:
+    pinyin: jian1 duan1
+- prompts:
+    hanzi: 高端
+  hints:
+    pinyin: gao1 duan1
+- prompts:
+    hanzi: 低端
+  hints:
+    pinyin: di1 duan1
+- prompts:
+    hanzi: 开端
+  hints:
+    pinyin: kai1 duan1
+- prompts:
+    hanzi: 事端
+  hints:
+    pinyin: shi4 duan1
+- prompts:
+    hanzi: 云端
+  hints:
+    pinyin: yun2 duan1
+- prompts:
+    hanzi: 客户端
+  hints:
+    pinyin: ke4 hu4 duan1
+- prompts:
+    hanzi: 服务端
+  hints:
+    pinyin: fu2 wu4 duan1
+- prompts:
+    hanzi: 命令（command + command=command）
+  hints:
+    pinyin: ming4 ling4 （command + command=command）
+- prompts:
+    hanzi: 解释（untangle + explain=explain)
+  hints:
+    pinyin: jie3 shi4 （untangle + explain=explain)
+- prompts:
+    hanzi: 编译 (weave + translate=compile)
+  hints:
+    pinyin: bian1 yi4  (weave + translate=compile)
+- prompts:
+    hanzi: 登录 (register + enter=log in)
+  hints:
+    pinyin: deng1 lu4  (register + enter=log in)
+- prompts:
+    hanzi: 浏览 (skim + inspect=browse)
+  hints:
+    pinyin: liu2 lan3  (skim + inspect=browse)
+- prompts:
+    hanzi: "删除 (delete + remove\tdelete"
+  hints:
+    pinyin: "shan1 chu2  (delete + remove\tdelete"
+- prompts:
+    hanzi: 一行字 (one line of writing)
+  hints:
+    pinyin: yi1 hang2 zi4  (one line of writing)
+- prompts:
+    hanzi: 换行 (start a new line; line break)
+  hints:
+    pinyin: huan4 hang2  (start a new line; line break)
+- prompts:
+    hanzi: 行号 (line number)
+  hints:
+    pinyin: hang2 hao2  (line number)
+- prompts:
+    hanzi: 银行 (bank)
+  hints:
+    pinyin: yin2 hang2  (bank)
+- prompts:
+    hanzi: 行业 (industry)
+  hints:
+    pinyin: hang2 ye4  (industry)
+- prompts:
+    hanzi: 行走 (walk)
+  hints:
+    pinyin: xing2 zou3  (walk)
+- prompts:
+    hanzi: 运行 (run, operate)
+  hints:
+    pinyin: yun4 xing2  (run, operate)
+- prompts:
+    hanzi: 执行 (execute)
+  hints:
+    pinyin: zhi2 xing2  (execute)
+- prompts:
+    hanzi: 可行 feasible
+  hints:
+    pinyin: ke3 xing2  feasible
+- prompts:
+    hanzi: 文件夹 (大陆）資料夾（台湾）
+  hints:
+    pinyin: wen2 jian4 jia1  ( da4 lu4 ） zi1 liao4 jia1 （ tai2 wan1 ）
+- prompts:
+    hanzi: 文件
+  hints:
+    pinyin: wen2 jian4
+- prompts:
+    hanzi: 资料 （資料）
+  hints:
+    pinyin: zi1 liao4  （ zi1 liao4 ）
+- prompts:
+    hanzi: 目录 (目錄)
+  hints:
+    pinyin: mu4 lu4  ( mu4 lu4 )
+- prompts:
+    hanzi: 当前目录 (當前目錄)
+  hints:
+    pinyin: dang1 qian2 mu4 lu4  ( dang1 qian2 mu4 lu4 )
+- prompts:
+    hanzi: 根目录 (根目錄)
+  hints:
+    pinyin: gen1 mu4 lu4  ( gen1 mu4 lu4 )
+- prompts:
+    hanzi: 工作目录 (工作目錄)
+  hints:
+    pinyin: gong1 zuo4 mu4 lu4  ( gong1 zuo4 mu4 lu4 )
+- prompts:
+    hanzi: 目录结构 (目錄結構)
+  hints:
+    pinyin: mu4 lu4 jie2 gou4  ( mu4 lu4 jie2 gou4 )
+- prompts:
+    hanzi: 进入这个目录(進入這個目錄)
+  hints:
+    pinyin: jin4 ru4 zhe4 ge5 mu4 lu4 ( jin4 ru4 zhe4 ge4 mu4 lu4 )

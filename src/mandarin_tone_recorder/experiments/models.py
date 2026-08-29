@@ -3,7 +3,10 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from mandarin_tone_recorder.participants.models import Participant
+from mandarin_tone_recorder.participants.models import (
+    Participant,
+    ParticipantProfileSnapshot,
+)
 
 
 class BaseSyllable(models.Model):
@@ -134,6 +137,13 @@ class Enrollment(models.Model):
     )
     experiment = models.ForeignKey(
         Experiment,
+        on_delete=models.PROTECT,
+        related_name="enrollments",
+    )
+    profile_snapshot = models.ForeignKey(
+        ParticipantProfileSnapshot,
+        blank=True,
+        null=True,
         on_delete=models.PROTECT,
         related_name="enrollments",
     )

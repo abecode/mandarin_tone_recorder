@@ -7,6 +7,7 @@ from mandarin_tone_recorder.participants.models import (
     Participant,
     ParticipantLanguage,
     ParticipantProfile,
+    ParticipantProfileSnapshot,
 )
 
 
@@ -31,3 +32,26 @@ class ParticipantProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Consent)
+
+
+@admin.register(ParticipantProfileSnapshot)
+class ParticipantProfileSnapshotAdmin(admin.ModelAdmin):
+    list_display = (
+        "participant",
+        "source",
+        "knows_mandarin",
+        "speaker_background",
+        "mandarin_level",
+        "created_at",
+    )
+    list_filter = ("source", "knows_mandarin", "speaker_background", "mandarin_level")
+    readonly_fields = (
+        "participant",
+        "source",
+        "knows_mandarin",
+        "speaker_background",
+        "mandarin_level",
+        "languages",
+        "created_at",
+    )
+    search_fields = ("participant__public_id",)

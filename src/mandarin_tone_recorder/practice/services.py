@@ -7,6 +7,11 @@ from django.db.models import Q, QuerySet
 from django.utils import timezone
 from pypinyin import Style, lazy_pinyin
 
+from mandarin_tone_recorder.participants.models import (
+    Participant,
+    ParticipantProfileSnapshot,
+)
+from mandarin_tone_recorder.participants.services import create_profile_snapshot
 from mandarin_tone_recorder.practice.models import (
     PracticeAttempt,
     PracticeDeck,
@@ -117,7 +122,25 @@ def create_practice_session(
         raise ValueError("Practice sessions require a logged-in user.")
     if not visible_practice_decks(user).filter(pk=deck.pk).exists():
         raise ValueError("Practice deck is not visible to this user.")
-    session = PracticeSession.objects.create(deck=deck, user=user)
+    participant = (
+        Participant.objects.filter(user=user, profile__isnull=False)
+        .select_related("profile")
+        .order_by("-created_at", "-id")
+        .first()
+    )
+    profile_snapshot = (
+        create_profile_snapshot(
+            participant.profile,
+            source=ParticipantProfileSnapshot.Source.PRACTICE_START,
+        )
+        if participant is not None
+        else None
+    )
+    session = PracticeSession.objects.create(
+        deck=deck,
+        user=user,
+        profile_snapshot=profile_snapshot,
+    )
     start_next_practice_attempt(session)
     return session
 

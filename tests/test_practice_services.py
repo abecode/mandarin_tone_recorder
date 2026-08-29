@@ -4,6 +4,12 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from mandarin_tone_recorder.accounts.models import User
+from mandarin_tone_recorder.participants.models import (
+    Participant,
+    ParticipantLanguage,
+    ParticipantProfile,
+    ParticipantProfileSnapshot,
+)
 from mandarin_tone_recorder.practice.models import (
     PracticeAttempt,
     PracticeDeck,
@@ -99,6 +105,50 @@ class PracticeServiceTests(TestCase):
         )
 
         self.assertIsNone(deck.user)
+
+    def test_create_practice_session_without_participant_has_no_snapshot(self) -> None:
+        deck = create_practice_deck(
+            user=self.user,
+            title="Starter",
+            source_text="你好。",
+        )
+
+        session = create_practice_session(user=self.user, deck=deck)
+
+        self.assertIsNone(session.profile_snapshot)
+
+    def test_create_practice_session_snapshots_linked_participant_profile(self) -> None:
+        participant = Participant.objects.create(user=self.user)
+        profile = ParticipantProfile.objects.create(
+            participant=participant,
+            knows_mandarin=True,
+            speaker_background=ParticipantProfile.SpeakerBackground.LEARNER,
+            mandarin_level=ParticipantProfile.MandarinLevel.BEGINNER,
+        )
+        ParticipantLanguage.objects.create(
+            profile=profile,
+            language_tag="en-US",
+            relationship=ParticipantLanguage.Relationship.NATIVE,
+            proficiency=ParticipantLanguage.Proficiency.NATIVE_LIKE,
+        )
+        deck = create_practice_deck(
+            user=self.user,
+            title="Starter",
+            source_text="你好。",
+        )
+
+        session = create_practice_session(user=self.user, deck=deck)
+
+        self.assertIsNotNone(session.profile_snapshot)
+        self.assertEqual(
+            session.profile_snapshot.source,
+            ParticipantProfileSnapshot.Source.PRACTICE_START,
+        )
+        self.assertIs(session.profile_snapshot.knows_mandarin, True)
+        self.assertEqual(
+            session.profile_snapshot.languages[0]["language_tag"],
+            "en-US",
+        )
 
 
 class PracticeHintEventTests(TestCase):

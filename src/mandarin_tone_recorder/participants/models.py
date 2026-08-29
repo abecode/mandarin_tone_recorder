@@ -117,6 +117,33 @@ class ParticipantProfile(models.Model):
         return f"Profile for {self.participant}"
 
 
+class ParticipantProfileSnapshot(models.Model):
+    """Historical copy of participant profile data at a workflow boundary."""
+
+    class Source(models.TextChoices):
+        EXPERIMENT_ROUTING = "experiment_routing", "Experiment routing"
+        PRACTICE_START = "practice_start", "Practice start"
+        ADMIN_CREATED = "admin_created", "Admin created"
+
+    participant = models.ForeignKey(
+        Participant,
+        on_delete=models.CASCADE,
+        related_name="profile_snapshots",
+    )
+    source = models.CharField(choices=Source, max_length=40)
+    knows_mandarin = models.BooleanField(blank=True, null=True)
+    speaker_background = models.CharField(blank=True, max_length=20)
+    mandarin_level = models.CharField(blank=True, max_length=20)
+    languages = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "id")
+
+    def __str__(self) -> str:
+        return f"{self.source} snapshot for {self.participant}"
+
+
 class ParticipantLanguage(models.Model):
     """A language associated with a participant's background or proficiency."""
 

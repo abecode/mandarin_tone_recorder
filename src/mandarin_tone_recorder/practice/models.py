@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 
+from mandarin_tone_recorder.participants.models import ParticipantProfileSnapshot
+
 
 snake_case_slug_validator = RegexValidator(
     regex=r"^$|^[a-z0-9_]+$",
@@ -92,6 +94,13 @@ class PracticeSession(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        related_name="practice_sessions",
+    )
+    profile_snapshot = models.ForeignKey(
+        ParticipantProfileSnapshot,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
         related_name="practice_sessions",
     )
     started_at = models.DateTimeField(auto_now_add=True)

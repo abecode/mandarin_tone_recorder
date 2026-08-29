@@ -9,6 +9,7 @@ from mandarin_tone_recorder.participants.models import (
     Participant,
     ParticipantLanguage,
     ParticipantProfile,
+    ParticipantProfileSnapshot,
 )
 from mandarin_tone_recorder.participants.services import PARTICIPANT_SESSION_KEY
 from mandarin_tone_recorder.participants.views import CONSENT_VERSION
@@ -76,6 +77,16 @@ class ParticipantFlowTests(TestCase):
         self.assertContains(response, "Mandarin non-tone reading experiment")
         participant.profile.refresh_from_db()
         self.assertIs(participant.profile.knows_mandarin, False)
+        self.assertIsNotNone(enrollment.profile_snapshot)
+        self.assertEqual(
+            enrollment.profile_snapshot.source,
+            ParticipantProfileSnapshot.Source.EXPERIMENT_ROUTING,
+        )
+        self.assertIs(enrollment.profile_snapshot.knows_mandarin, False)
+        self.assertEqual(
+            enrollment.profile_snapshot.languages[0]["language_tag"],
+            "en-US",
+        )
         native_language = ParticipantLanguage.objects.get(
             profile=participant.profile,
             relationship=ParticipantLanguage.Relationship.NATIVE,
@@ -136,6 +147,23 @@ class ParticipantFlowTests(TestCase):
         self.assertEqual(
             participant.profile.mandarin_level,
             ParticipantProfile.MandarinLevel.INTERMEDIATE,
+        )
+        self.assertIsNotNone(enrollment.profile_snapshot)
+        self.assertIs(enrollment.profile_snapshot.knows_mandarin, True)
+        self.assertEqual(
+            enrollment.profile_snapshot.speaker_background,
+            ParticipantProfile.SpeakerBackground.LEARNER,
+        )
+        self.assertEqual(
+            enrollment.profile_snapshot.mandarin_level,
+            ParticipantProfile.MandarinLevel.INTERMEDIATE,
+        )
+        self.assertEqual(
+            [
+                language["language_tag"]
+                for language in enrollment.profile_snapshot.languages
+            ],
+            ["cmn-Hant-TW", "x-mmok1234"],
         )
 
     def test_later_steps_cannot_be_opened_without_consent_or_prerequisites(
@@ -221,3 +249,49 @@ class ParticipantFlowTests(TestCase):
         enrollments = Enrollment.objects.filter(participant=participant)
         self.assertEqual(enrollments.count(), 1)
         self.assertEqual(enrollments.get().experiment.track, Experiment.Track.TONE)
+
+    def test_rerouting_ready_enrollment_refreshes_profile_snapshot(self) -> None:
+        participant = self.consent()
+        self.client.post(
+            reverse("participants:mandarin-knowledge"),
+            self.mandarin_knowledge_payload(knows_mandarin="False"),
+        )
+        enrollment = Enrollment.objects.get(participant=participant)
+        first_snapshot = enrollment.profile_snapshot
+
+        self.client.post(
+            reverse("participants:mandarin-knowledge"),
+            self.mandarin_knowledge_payload(
+                knows_mandarin="False",
+                native_languages=["en-GB"],
+            ),
+        )
+
+        enrollment.refresh_from_db()
+        self.assertNotEqual(enrollment.profile_snapshot, first_snapshot)
+        self.assertEqual(
+            enrollment.profile_snapshot.languages[0]["language_tag"],
+            "en-GB",
+        )
+
+    def test_rerouting_started_enrollment_preserves_profile_snapshot(self) -> None:
+        participant = self.consent()
+        self.client.post(
+            reverse("participants:mandarin-knowledge"),
+            self.mandarin_knowledge_payload(knows_mandarin="False"),
+        )
+        enrollment = Enrollment.objects.get(participant=participant)
+        first_snapshot = enrollment.profile_snapshot
+        enrollment.status = Enrollment.Status.IN_PROGRESS
+        enrollment.save(update_fields=("status",))
+
+        self.client.post(
+            reverse("participants:mandarin-knowledge"),
+            self.mandarin_knowledge_payload(
+                knows_mandarin="False",
+                native_languages=["en-GB"],
+            ),
+        )
+
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.profile_snapshot, first_snapshot)

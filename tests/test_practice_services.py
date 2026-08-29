@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from mandarin_tone_recorder.accounts.models import User
+from mandarin_tone_recorder.experiments.models import AssessmentCycle
 from mandarin_tone_recorder.participants.models import (
     Participant,
     ParticipantLanguage,
@@ -140,6 +141,12 @@ class PracticeServiceTests(TestCase):
         session = create_practice_session(user=self.user, deck=deck)
 
         self.assertIsNotNone(session.profile_snapshot)
+        self.assertIsNotNone(session.assessment_cycle)
+        self.assertEqual(session.assessment_cycle.status, AssessmentCycle.Status.ACTIVE)
+        self.assertEqual(
+            session.assessment_cycle.profile_snapshot.source,
+            ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+        )
         self.assertEqual(
             session.profile_snapshot.source,
             ParticipantProfileSnapshot.Source.PRACTICE_START,
@@ -149,6 +156,34 @@ class PracticeServiceTests(TestCase):
             session.profile_snapshot.languages[0]["language_tag"],
             "en-US",
         )
+
+    def test_create_practice_session_reuses_existing_active_cycle(self) -> None:
+        participant = Participant.objects.create(user=self.user)
+        profile = ParticipantProfile.objects.create(
+            participant=participant,
+            knows_mandarin=False,
+        )
+        first_snapshot = ParticipantProfileSnapshot.objects.create(
+            participant=participant,
+            source=ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+            knows_mandarin=False,
+        )
+        cycle = AssessmentCycle.objects.create(
+            participant=participant,
+            profile_snapshot=first_snapshot,
+            label="Existing cycle",
+        )
+        deck = create_practice_deck(
+            user=self.user,
+            title="Starter",
+            source_text="你好。",
+        )
+
+        session = create_practice_session(user=self.user, deck=deck)
+
+        self.assertEqual(session.assessment_cycle, cycle)
+        self.assertNotEqual(session.profile_snapshot, first_snapshot)
+        self.assertEqual(participant.profile_snapshots.count(), 2)
 
 
 class PracticeHintEventTests(TestCase):

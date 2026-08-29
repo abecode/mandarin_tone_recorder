@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 
+from mandarin_tone_recorder.experiments.models import AssessmentCycle
 from mandarin_tone_recorder.participants.models import ParticipantProfileSnapshot
 
 
@@ -101,6 +102,13 @@ class PracticeSession(models.Model):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
+        related_name="practice_sessions",
+    )
+    assessment_cycle = models.ForeignKey(
+        AssessmentCycle,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name="practice_sessions",
     )
     started_at = models.DateTimeField(auto_now_add=True)

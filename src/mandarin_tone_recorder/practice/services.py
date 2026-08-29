@@ -11,7 +11,10 @@ from mandarin_tone_recorder.participants.models import (
     Participant,
     ParticipantProfileSnapshot,
 )
-from mandarin_tone_recorder.participants.services import create_profile_snapshot
+from mandarin_tone_recorder.participants.services import (
+    create_profile_snapshot,
+    get_or_create_active_assessment_cycle,
+)
 from mandarin_tone_recorder.practice.models import (
     PracticeAttempt,
     PracticeDeck,
@@ -128,17 +131,18 @@ def create_practice_session(
         .order_by("-created_at", "-id")
         .first()
     )
-    profile_snapshot = (
-        create_profile_snapshot(
+    assessment_cycle = None
+    profile_snapshot = None
+    if participant is not None:
+        assessment_cycle = get_or_create_active_assessment_cycle(participant)
+        profile_snapshot = create_profile_snapshot(
             participant.profile,
             source=ParticipantProfileSnapshot.Source.PRACTICE_START,
         )
-        if participant is not None
-        else None
-    )
     session = PracticeSession.objects.create(
         deck=deck,
         user=user,
+        assessment_cycle=assessment_cycle,
         profile_snapshot=profile_snapshot,
     )
     start_next_practice_attempt(session)

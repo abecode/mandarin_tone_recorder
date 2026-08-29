@@ -121,6 +121,7 @@ class ParticipantProfileSnapshot(models.Model):
     """Historical copy of participant profile data at a workflow boundary."""
 
     class Source(models.TextChoices):
+        ASSESSMENT_CYCLE_START = "assessment_cycle_start", "Assessment cycle start"
         EXPERIMENT_ROUTING = "experiment_routing", "Experiment routing"
         PRACTICE_START = "practice_start", "Practice start"
         ADMIN_CREATED = "admin_created", "Admin created"

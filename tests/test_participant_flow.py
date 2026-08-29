@@ -3,7 +3,11 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from mandarin_tone_recorder.experiments.models import Enrollment, Experiment
+from mandarin_tone_recorder.experiments.models import (
+    AssessmentCycle,
+    Enrollment,
+    Experiment,
+)
 from mandarin_tone_recorder.participants.models import (
     Consent,
     Participant,
@@ -11,7 +15,10 @@ from mandarin_tone_recorder.participants.models import (
     ParticipantProfile,
     ParticipantProfileSnapshot,
 )
-from mandarin_tone_recorder.participants.services import PARTICIPANT_SESSION_KEY
+from mandarin_tone_recorder.participants.services import (
+    PARTICIPANT_SESSION_KEY,
+    get_or_create_active_assessment_cycle,
+)
 from mandarin_tone_recorder.participants.views import CONSENT_VERSION
 
 
@@ -74,6 +81,11 @@ class ParticipantFlowTests(TestCase):
 
         enrollment = Enrollment.objects.get(participant=participant)
         self.assertEqual(enrollment.experiment.track, Experiment.Track.NON_TONE)
+        self.assertIsNotNone(enrollment.assessment_cycle)
+        self.assertEqual(
+            enrollment.assessment_cycle.profile_snapshot.source,
+            ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+        )
         self.assertContains(response, "Mandarin non-tone reading experiment")
         participant.profile.refresh_from_db()
         self.assertIs(participant.profile.knows_mandarin, False)
@@ -138,6 +150,7 @@ class ParticipantFlowTests(TestCase):
 
         enrollment = Enrollment.objects.get(participant=participant)
         self.assertEqual(enrollment.experiment.track, Experiment.Track.TONE)
+        self.assertIsNotNone(enrollment.assessment_cycle)
         self.assertContains(response, "Mandarin tone reading experiment")
         participant.profile.refresh_from_db()
         self.assertEqual(
@@ -249,6 +262,7 @@ class ParticipantFlowTests(TestCase):
         enrollments = Enrollment.objects.filter(participant=participant)
         self.assertEqual(enrollments.count(), 1)
         self.assertEqual(enrollments.get().experiment.track, Experiment.Track.TONE)
+        self.assertIsNotNone(enrollments.get().assessment_cycle)
 
     def test_rerouting_ready_enrollment_refreshes_profile_snapshot(self) -> None:
         participant = self.consent()
@@ -258,6 +272,7 @@ class ParticipantFlowTests(TestCase):
         )
         enrollment = Enrollment.objects.get(participant=participant)
         first_snapshot = enrollment.profile_snapshot
+        first_cycle_snapshot = enrollment.assessment_cycle.profile_snapshot
 
         self.client.post(
             reverse("participants:mandarin-knowledge"),
@@ -268,7 +283,12 @@ class ParticipantFlowTests(TestCase):
         )
 
         enrollment.refresh_from_db()
+        enrollment.assessment_cycle.refresh_from_db()
         self.assertNotEqual(enrollment.profile_snapshot, first_snapshot)
+        self.assertNotEqual(
+            enrollment.assessment_cycle.profile_snapshot,
+            first_cycle_snapshot,
+        )
         self.assertEqual(
             enrollment.profile_snapshot.languages[0]["language_tag"],
             "en-GB",
@@ -282,6 +302,7 @@ class ParticipantFlowTests(TestCase):
         )
         enrollment = Enrollment.objects.get(participant=participant)
         first_snapshot = enrollment.profile_snapshot
+        first_cycle_snapshot = enrollment.assessment_cycle.profile_snapshot
         enrollment.status = Enrollment.Status.IN_PROGRESS
         enrollment.save(update_fields=("status",))
 
@@ -294,4 +315,74 @@ class ParticipantFlowTests(TestCase):
         )
 
         enrollment.refresh_from_db()
+        enrollment.assessment_cycle.refresh_from_db()
         self.assertEqual(enrollment.profile_snapshot, first_snapshot)
+        self.assertEqual(
+            enrollment.assessment_cycle.profile_snapshot,
+            first_cycle_snapshot,
+        )
+
+    def test_get_or_create_active_assessment_cycle_reuses_active_cycle(self) -> None:
+        participant = self.consent()
+        self.client.post(
+            reverse("participants:mandarin-knowledge"),
+            self.mandarin_knowledge_payload(knows_mandarin="False"),
+        )
+
+        first_cycle = get_or_create_active_assessment_cycle(participant)
+        second_cycle = get_or_create_active_assessment_cycle(participant)
+
+        self.assertEqual(first_cycle, second_cycle)
+        self.assertEqual(first_cycle.status, AssessmentCycle.Status.ACTIVE)
+        self.assertEqual(
+            first_cycle.profile_snapshot.source,
+            ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+        )
+
+    def test_closed_assessment_cycle_allows_new_active_cycle(self) -> None:
+        participant = self.consent()
+        first_cycle = get_or_create_active_assessment_cycle(
+            participant,
+            label="Fall 2026 baseline",
+        )
+        first_cycle.status = AssessmentCycle.Status.CLOSED
+        first_cycle.save(update_fields=("status",))
+
+        second_cycle = get_or_create_active_assessment_cycle(
+            participant,
+            label="Spring 2027 follow-up",
+        )
+
+        self.assertNotEqual(first_cycle, second_cycle)
+        self.assertEqual(second_cycle.label, "Spring 2027 follow-up")
+
+    def test_same_experiment_can_be_reenrolled_in_different_cycles(self) -> None:
+        participant = self.consent()
+        experiment = Experiment.objects.get(slug="mandarin-non-tone-reading")
+        first_cycle = get_or_create_active_assessment_cycle(
+            participant,
+            label="Fall 2026 baseline",
+        )
+        first_cycle.status = AssessmentCycle.Status.COMPLETED
+        first_cycle.save(update_fields=("status",))
+        second_cycle = get_or_create_active_assessment_cycle(
+            participant,
+            label="Spring 2027 follow-up",
+        )
+
+        first_enrollment = Enrollment.objects.create(
+            participant=participant,
+            assessment_cycle=first_cycle,
+            experiment=experiment,
+            profile_snapshot=first_cycle.profile_snapshot,
+            routing_reason="First cycle.",
+        )
+        second_enrollment = Enrollment.objects.create(
+            participant=participant,
+            assessment_cycle=second_cycle,
+            experiment=experiment,
+            profile_snapshot=second_cycle.profile_snapshot,
+            routing_reason="Second cycle.",
+        )
+
+        self.assertNotEqual(first_enrollment, second_enrollment)

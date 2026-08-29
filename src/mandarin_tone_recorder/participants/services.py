@@ -1,9 +1,14 @@
-"""Participant-session and experiment-routing services."""
+"""Participant-session, assessment-cycle, and experiment-routing services."""
 
 from django.db import transaction
 from django.http import HttpRequest
+from django.utils import timezone
 
-from mandarin_tone_recorder.experiments.models import Enrollment, Experiment
+from mandarin_tone_recorder.experiments.models import (
+    AssessmentCycle,
+    Enrollment,
+    Experiment,
+)
 from mandarin_tone_recorder.participants.models import (
     Participant,
     ParticipantProfile,
@@ -54,10 +59,55 @@ def create_profile_snapshot(
     )
 
 
+def default_assessment_cycle_label() -> str:
+    """Return the default label for a newly started assessment cycle."""
+    return f"{timezone.localdate():%B %Y} assessment"
+
+
 @transaction.atomic
-def route_participant(participant: Participant) -> Enrollment:
+def get_or_create_active_assessment_cycle(
+    participant: Participant,
+    *,
+    label: str | None = None,
+) -> AssessmentCycle:
+    """Return this participant's active assessment cycle, creating one if needed."""
+    active_cycle = participant.assessment_cycles.filter(
+        status=AssessmentCycle.Status.ACTIVE,
+    ).first()
+    if active_cycle is not None:
+        return active_cycle
+
+    snapshot = create_profile_snapshot(
+        participant.profile,
+        source=ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+    )
+    return AssessmentCycle.objects.create(
+        participant=participant,
+        profile_snapshot=snapshot,
+        label=label or default_assessment_cycle_label(),
+    )
+
+
+@transaction.atomic
+def route_participant(
+    participant: Participant,
+    *,
+    assessment_cycle: AssessmentCycle | None = None,
+) -> Enrollment:
     """Enroll a fully profiled participant in the appropriate experiment."""
     profile = participant.profile
+    assessment_cycle = assessment_cycle or get_or_create_active_assessment_cycle(
+        participant
+    )
+    if (
+        assessment_cycle.enrollments.exists()
+        and not _assessment_cycle_has_historical_data(assessment_cycle)
+    ):
+        assessment_cycle.profile_snapshot = create_profile_snapshot(
+            profile,
+            source=ParticipantProfileSnapshot.Source.ASSESSMENT_CYCLE_START,
+        )
+        assessment_cycle.save(update_fields=("profile_snapshot",))
     experiment_slug = (
         "mandarin-tone-reading"
         if profile.knows_mandarin
@@ -66,11 +116,13 @@ def route_participant(participant: Participant) -> Enrollment:
     experiment = Experiment.objects.get(slug=experiment_slug, is_active=True)
     Enrollment.objects.filter(
         participant=participant,
+        assessment_cycle=assessment_cycle,
         status=Enrollment.Status.READY,
     ).exclude(experiment=experiment).delete()
 
     existing_enrollment = Enrollment.objects.filter(
         participant=participant,
+        assessment_cycle=assessment_cycle,
         experiment=experiment,
     ).first()
     if (
@@ -85,6 +137,7 @@ def route_participant(participant: Participant) -> Enrollment:
     )
     enrollment, _ = Enrollment.objects.get_or_create(
         participant=participant,
+        assessment_cycle=assessment_cycle,
         experiment=experiment,
         defaults={
             "profile_snapshot": snapshot,
@@ -98,3 +151,14 @@ def route_participant(participant: Participant) -> Enrollment:
     enrollment.profile_snapshot = snapshot
     enrollment.save(update_fields=("profile_snapshot",))
     return enrollment
+
+
+def _assessment_cycle_has_historical_data(
+    assessment_cycle: AssessmentCycle,
+) -> bool:
+    """Return whether a cycle has data that should keep its snapshot immutable."""
+    if assessment_cycle.practice_sessions.exists():
+        return True
+    return assessment_cycle.enrollments.exclude(
+        status=Enrollment.Status.READY,
+    ).exists()

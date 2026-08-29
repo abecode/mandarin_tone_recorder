@@ -121,6 +121,37 @@ class ExperimentStimulus(models.Model):
         return f"{self.experiment}: {self.stimulus}"
 
 
+class AssessmentCycle(models.Model):
+    """One logical longitudinal data-collection period for a participant."""
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        COMPLETED = "completed", "Completed"
+        CLOSED = "closed", "Closed"
+
+    participant = models.ForeignKey(
+        Participant,
+        on_delete=models.CASCADE,
+        related_name="assessment_cycles",
+    )
+    profile_snapshot = models.ForeignKey(
+        ParticipantProfileSnapshot,
+        on_delete=models.PROTECT,
+        related_name="assessment_cycles",
+    )
+    label = models.CharField(max_length=120)
+    status = models.CharField(choices=Status, default=Status.ACTIVE, max_length=20)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    closed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ("-started_at", "id")
+
+    def __str__(self) -> str:
+        return f"{self.label} for {self.participant}"
+
+
 class Enrollment(models.Model):
     """A participant's routed entry into one experiment."""
 
@@ -140,6 +171,13 @@ class Enrollment(models.Model):
         on_delete=models.PROTECT,
         related_name="enrollments",
     )
+    assessment_cycle = models.ForeignKey(
+        AssessmentCycle,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
     profile_snapshot = models.ForeignKey(
         ParticipantProfileSnapshot,
         blank=True,
@@ -154,8 +192,9 @@ class Enrollment(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=("participant", "experiment"),
-                name="unique_participant_experiment_enrollment",
+                fields=("assessment_cycle", "experiment"),
+                condition=models.Q(assessment_cycle__isnull=False),
+                name="unique_assessment_cycle_experiment_enrollment",
             )
         ]
 

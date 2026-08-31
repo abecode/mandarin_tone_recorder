@@ -11,6 +11,11 @@ class AuthenticationFlowTests(TestCase):
         response = self.client.get(reverse("home"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mandarin Pronunciation Study")
+        self.assertContains(response, reverse("participants:consent"), count=1)
+        self.assertContains(response, reverse("practice:landing"), count=1)
+        self.assertContains(response, reverse("accounts:login"), count=1)
+        self.assertContains(response, reverse("accounts:signup"), count=1)
         self.assertContains(response, "Log in")
         self.assertContains(response, "Sign up")
 
@@ -29,7 +34,9 @@ class AuthenticationFlowTests(TestCase):
         self.assertRedirects(response, reverse("home"))
         user = User.objects.get(username="new-user")
         self.assertEqual(user.email, "new@example.com")
-        self.assertContains(response, "Your experiments and practice sessions")
+        self.assertContains(response, "Mandarin Pronunciation Study")
+        self.assertContains(response, reverse("participants:consent"), count=1)
+        self.assertContains(response, reverse("practice:landing"), count=1)
 
     def test_signup_rejects_duplicate_email(self) -> None:
         User.objects.create_user(
@@ -69,4 +76,6 @@ class AuthenticationFlowTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("home"))
-        self.assertContains(response, "Your experiments and practice sessions")
+        self.assertContains(response, "Mandarin Pronunciation Study")
+        self.assertContains(response, reverse("participants:consent"), count=1)
+        self.assertContains(response, reverse("practice:landing"), count=1)

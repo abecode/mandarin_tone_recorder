@@ -62,6 +62,98 @@ select {
   max-width: 38rem;
 }
 
+.home-hero {
+  min-height: 22rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+  padding: 3rem 0 2rem;
+  border-bottom: 1px solid #d8dee8;
+}
+
+.section-label {
+  margin: 0 0 0.75rem;
+  color: #596579;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.home-hero h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.home-lede {
+  max-width: 42rem;
+  margin: 1.25rem 0 0;
+  color: #364154;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.home-disclosure {
+  max-width: 46rem;
+  margin: 1rem 0 0;
+  color: #364154;
+  line-height: 1.55;
+}
+
+.home-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.button-link {
+  width: fit-content;
+  padding: 0.65rem 1rem;
+  border: 1px solid #aeb8c7;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: #172033;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-paths {
+  display: grid;
+  grid-template-columns: minmax(0, 42rem);
+  gap: 2rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid #d8dee8;
+}
+
+.home-path {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.home-path h2,
+.home-path p {
+  margin: 0;
+}
+
+.home-path p,
+.home-note p {
+  color: #364154;
+  line-height: 1.5;
+}
+
+.home-note {
+  max-width: 48rem;
+  padding: 1.5rem 0 0;
+}
+
+.home-note p {
+  margin: 0;
+}
+
 .auth-panel form,
 .study-form {
   display: grid;
@@ -425,6 +517,31 @@ button:disabled {
 
   .page {
     padding: 1.25rem 0;
+  }
+
+  .home-hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 2rem 0 1.5rem;
+  }
+
+  .home-hero h1 {
+    font-size: 3rem;
+  }
+
+  .home-primary-actions,
+  .home-paths {
+    display: grid;
+  }
+
+  .home-primary-actions a {
+    width: 100%;
+  }
+
+  .home-paths {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .recorder {

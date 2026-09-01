@@ -31,7 +31,17 @@ class ParticipantProfileAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Consent)
+@admin.register(Consent)
+class ConsentAdmin(admin.ModelAdmin):
+    list_display = (
+        "participant",
+        "version",
+        "share_recordings_on_huggingface",
+        "accepted_at",
+        "withdrawn_at",
+    )
+    list_filter = ("version", "share_recordings_on_huggingface", "accepted_at")
+    search_fields = ("participant__public_id",)
 
 
 @admin.register(ParticipantProfileSnapshot)

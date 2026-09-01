@@ -16,6 +16,8 @@ class AuthenticationFlowTests(TestCase):
         self.assertContains(response, reverse("practice:landing"), count=1)
         self.assertContains(response, reverse("accounts:login"), count=1)
         self.assertContains(response, reverse("accounts:signup"), count=1)
+        self.assertContains(response, "Hugging Face")
+        self.assertContains(response, "self-hosted")
         self.assertContains(response, "Log in")
         self.assertContains(response, "Sign up")
 

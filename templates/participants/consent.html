@@ -11,6 +11,7 @@
       This experiment helps us understand how people learn Mandarin Chinese.
       Participation is optional and takes approximately 20 minutes.
     </p>
+    {% include "participants/_data_use_disclosure.html" %}
     <p>
       You may end the experiment at any time. Choosing not to participate, or
       stopping after you begin, carries no penalty.
@@ -25,6 +26,11 @@
         <label class="checkbox-option">
           {{ form.consent }}
           <span>{{ form.consent.label }}</span>
+        </label>
+        {{ form.share_recordings_on_huggingface.errors }}
+        <label class="checkbox-option">
+          {{ form.share_recordings_on_huggingface }}
+          <span>{{ form.share_recordings_on_huggingface.label }}</span>
         </label>
       </fieldset>
       <button type="submit">Next</button>

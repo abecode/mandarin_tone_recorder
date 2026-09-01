@@ -16,6 +16,22 @@ from mandarin_tone_recorder.experiments.models import (
     ExperimentStimulus,
     Stimulus,
 )
+from mandarin_tone_recorder.participants.models import Consent
+
+
+def recording_sharing_label(instance: "RecordingAttempt") -> str:
+    """Return a filename-safe label for the participant's sharing consent."""
+    consent = (
+        Consent.objects.filter(
+            participant=instance.session.enrollment.participant,
+            withdrawn_at__isnull=True,
+        )
+        .order_by("-accepted_at", "-id")
+        .first()
+    )
+    if consent and consent.share_recordings_on_huggingface:
+        return "hfshare"
+    return "noshare"
 
 
 def recording_upload_to(instance: "RecordingAttempt", filename: str) -> str:
@@ -29,9 +45,10 @@ def recording_upload_to(instance: "RecordingAttempt", filename: str) -> str:
     )
     stimulus_label = re.sub(r"[^A-Za-z0-9-]+", "-", stimulus_label)
     recorded_at = instance.recorded_at.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
+    sharing_label = recording_sharing_label(instance)
     basename = (
         f"{instance.stimulus_index:04d}_{instance.attempt_number:02d}_"
-        f"{stimulus_label}_{recorded_at}_{instance.recording_id}"
+        f"{stimulus_label}_{sharing_label}_{recorded_at}_{instance.recording_id}"
     )
     return (
         f"recordings/{participant_id}/{instance.session.public_id}/"

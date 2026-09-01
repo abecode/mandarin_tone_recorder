@@ -11,24 +11,7 @@
         interested in using the technology developed from your data to improve
         your Mandarin pronunciation, please log in or sign up.
       </p>
-      <p class="home-disclosure">
-        You will be asked for your language background information and
-        your voice will be recorded and used to build speech
-        recognition models that can help Manarin language learners.
-        You will be able to choose how your speech is used. One option
-        is to restrict the recordings to researchers at the University
-        of St. Thomas and immediate collaborators. Another option is
-        to share your recordings more broadly through a gated
-        (non-public) repository (HuggingFace) with researchers for
-        educational purposes only. Hugging face is a model and data
-        repository that promotes the use of shared data and models.
-      </p>
-      <p class="home-disclosure">
-	No identifying information besides voice will be shared and
-        only self-hosted speech recognition tools will be used (i.e.,
-        your speech will not be processed by third party services,
-        only local running software and models).
-      </p>
+      {% include "participants/_data_use_disclosure.html" %}
     </div>
     <div class="home-primary-actions">
       <a class="primary-action" href="{% url 'participants:consent' %}">

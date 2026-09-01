@@ -27,7 +27,7 @@ from mandarin_tone_recorder.participants.services import (
 )
 
 
-CONSENT_VERSION = "2026-06-13"
+CONSENT_VERSION = "2026-08-31"
 ParticipantView = Callable[..., HttpResponse]
 
 
@@ -66,7 +66,13 @@ def consent(request: HttpRequest) -> HttpResponse:
         participant = Participant.objects.create(
             user=request.user if request.user.is_authenticated else None
         )
-        Consent.objects.create(participant=participant, version=CONSENT_VERSION)
+        Consent.objects.create(
+            participant=participant,
+            version=CONSENT_VERSION,
+            share_recordings_on_huggingface=(
+                form.cleaned_data["share_recordings_on_huggingface"]
+            ),
+        )
         ParticipantProfile.objects.create(participant=participant)
         remember_participant(request, participant)
         return redirect("participants:mandarin-knowledge")

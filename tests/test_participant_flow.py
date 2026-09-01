@@ -64,9 +64,31 @@ class ParticipantFlowTests(TestCase):
                 version=CONSENT_VERSION,
             ).exists()
         )
+        consent = participant.consents.get(version=CONSENT_VERSION)
+        self.assertEqual(CONSENT_VERSION, "2026-08-31")
+        self.assertFalse(consent.share_recordings_on_huggingface)
         self.assertTrue(
             ParticipantProfile.objects.filter(participant=participant).exists()
         )
+
+    def test_consent_can_record_huggingface_sharing_permission(self) -> None:
+        response = self.client.post(
+            reverse("participants:consent"),
+            {
+                "consent": "on",
+                "share_recordings_on_huggingface": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("participants:mandarin-knowledge"))
+        consent = Consent.objects.get(version=CONSENT_VERSION)
+        self.assertTrue(consent.share_recordings_on_huggingface)
+
+    def test_consent_page_includes_data_use_disclosure(self) -> None:
+        response = self.client.get(reverse("participants:consent"))
+
+        self.assertContains(response, "Hugging Face")
+        self.assertContains(response, "self-hosted")
 
     def test_participant_without_mandarin_is_routed_to_non_tone_experiment(
         self,

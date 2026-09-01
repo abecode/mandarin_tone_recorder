@@ -10,11 +10,18 @@ from mandarin_tone_recorder.participants.models import (
 
 
 class ConsentForm(forms.Form):
-    """Capture an explicit choice to participate."""
+    """Capture consent and optional broader recording-sharing permission."""
 
     consent = forms.BooleanField(
         label="I agree to participate in this experiment.",
         required=True,
+    )
+    share_recordings_on_huggingface = forms.BooleanField(
+        label=(
+            "I agree to share my recordings through a gated Hugging Face "
+            "dataset for educational research."
+        ),
+        required=False,
     )
 
 

@@ -14,7 +14,7 @@ from mandarin_tone_recorder.experiments.models import (
     ExperimentStimulus,
     Stimulus,
 )
-from mandarin_tone_recorder.participants.models import Participant
+from mandarin_tone_recorder.participants.models import Consent, Participant
 from mandarin_tone_recorder.recordings.models import (
     RecordingAttempt,
     RecordingSession,
@@ -163,7 +163,37 @@ class RecordingModelTests(TestCase):
             path,
             (
                 f"recordings/{self.participant.public_id}/{session.public_id}/"
-                f"0012_02_ma1_20260614T204512Z_{attempt.recording_id}.webm"
+                f"0012_02_ma1_noshare_20260614T204512Z_"
+                f"{attempt.recording_id}.webm"
+            ),
+        )
+
+    def test_audio_upload_path_marks_huggingface_sharing_consent(self) -> None:
+        Consent.objects.create(
+            participant=self.participant,
+            version="2026-08-31",
+            share_recordings_on_huggingface=True,
+        )
+        session = self.create_session()
+        recorded_at = datetime(2026, 6, 14, 20, 45, 12, tzinfo=UTC)
+        attempt = RecordingAttempt(
+            session=session,
+            stimulus=self.stimulus,
+            stimulus_index=12,
+            attempt_number=2,
+            status=RecordingAttempt.Status.ACCEPTED,
+            recorded_at=recorded_at,
+            raw_audio=SimpleUploadedFile("browser.webm", b"audio"),
+        )
+
+        path = recording_upload_to(attempt, attempt.raw_audio.name)
+
+        self.assertEqual(
+            path,
+            (
+                f"recordings/{self.participant.public_id}/{session.public_id}/"
+                f"0012_02_ma1_hfshare_20260614T204512Z_"
+                f"{attempt.recording_id}.webm"
             ),
         )
 
@@ -197,7 +227,8 @@ class RecordingModelTests(TestCase):
             path,
             (
                 f"recordings/{self.participant.public_id}/{session.public_id}/"
-                f"0012_02_ma_20260614T204512Z_{attempt.recording_id}.webm"
+                f"0012_02_ma_noshare_20260614T204512Z_"
+                f"{attempt.recording_id}.webm"
             ),
         )
         self.assertEqual(unspecified.stable_id, "ma_unspecified")

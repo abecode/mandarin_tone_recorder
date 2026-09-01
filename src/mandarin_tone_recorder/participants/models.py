@@ -67,6 +67,7 @@ class Consent(models.Model):
         related_name="consents",
     )
     version = models.CharField(max_length=40)
+    share_recordings_on_huggingface = models.BooleanField(default=False)
     accepted_at = models.DateTimeField(auto_now_add=True)
     withdrawn_at = models.DateTimeField(blank=True, null=True)
 

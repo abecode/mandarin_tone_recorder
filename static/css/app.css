@@ -95,11 +95,19 @@ select {
   line-height: 1.5;
 }
 
-.home-disclosure {
+.data-use-disclosure {
   max-width: 46rem;
   margin: 1rem 0 0;
   color: #364154;
   line-height: 1.55;
+}
+
+.data-use-disclosure p {
+  margin: 0 0 1rem;
+}
+
+.data-use-disclosure p:last-child {
+  margin-bottom: 0;
 }
 
 .home-primary-actions {

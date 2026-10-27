@@ -15,6 +15,13 @@ uv run python manage.py import_stimuli
 The stimulus import is safe to rerun. It imports tones 1-4, creates separate
 tone-unspecified prompts, skips tone 5, and excludes syllabic `m` and `n`.
 
+Regenerating the stimulus CSV from a source syllable CSV requires the optional
+catalog dependencies (including pandas):
+
+```bash
+uv run --group catalog python scripts/make_stimuli.py syllables.csv stimuli/syllables.csv
+```
+
 Create an administrator:
 
 ```bash

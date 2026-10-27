@@ -18,7 +18,10 @@ The SSH/deployment user owns the checkout and belongs to the
 `mandarin-recorder` service user. The service owns the database and media.
 The proxy may read `staticfiles/`; do not give it direct access to `media/`.
 
-The server needs Python 3.14, `uv`, `git`, `rsync`, `curl`, `sudo`, and systemd.
+The server needs `uv`, a system `python3`, `git`, `rsync`, `curl`, `sudo`, and
+systemd. Fabric uses `uv` to install Python 3.14 under
+`/srv/mandarin-tone-recorder/python`, where the Gunicorn service user can
+execute it.
 The source machine also needs `rsync`. The public repository can be cloned on
 the server over HTTPS without a GitHub SSH key. Use SSH config for the
 deployment host and key. On the source checkout, install
@@ -28,6 +31,18 @@ Fabric with `uv sync --group deploy --locked`, then run `.venv/bin/fab --list`.
 logged into. A private repository would require server-side GitHub credentials,
 such as a read-only deploy key. Rerunning `bootstrap` after a failed clone is
 supported.
+
+Install `uv` on the server as the deployment user before running `deploy`.
+The official standalone installer is:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+~/.local/bin/uv --version
+```
+
+Fabric accepts either `uv` on the remote PATH or `~/.local/bin/uv`; it installs
+Python 3.14 before stopping the app. If `uv` is missing, `deploy` now fails
+before modifying the checkout or service.
 
 ## Production environment
 
@@ -75,7 +90,12 @@ proxy overwrites any value supplied by the browser. Gunicorn binds to loopback.
 
    This creates a consistent SQLite snapshot, transfers media with `rsync`,
    and installs the database last. The task refuses to replace an existing
-   production database. It does not delete media already on the server.
+   production database. It does not delete media already on the server. If
+   `rsync` fails before the database is installed, fix the cause and rerun the
+   same command; already copied recordings are retained. File timestamps are
+   preserved, but directory timestamps and source permissions are not copied
+   because the persistent media root belongs to the service user. Fabric sets
+   private group permissions on the server after `rsync` succeeds.
 4. Deploy the same code version as the source, migrate its schema, collect
    static files, start Gunicorn, and verify the data:
 
@@ -107,6 +127,10 @@ For a fresh empty installation, skip `migrate-data`, run `deploy`, then run
 creates a server-side SQLite snapshot, checks out the requested commit, runs
 `uv sync --locked --no-group deploy`, `manage.py check --deploy`, migrations,
 and `collectstatic`, then starts Gunicorn and probes its local HTTP endpoint.
+The optional `catalog` group is only needed to regenerate the stimulus CSV;
+production does not install pandas or NumPy.
+Fabric prints a labeled status message before each stage; data transfers also
+print an `rsync` summary when they finish.
 There is a short outage while the service is stopped. The proxy configuration
 does not need to reload for a code-only deployment. If a step fails, the
 service remains stopped for inspection; a database migration may need a

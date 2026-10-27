@@ -17,7 +17,7 @@ Output columns:
     is_rare, rarity, source_row, original_line_number
 
 Example:
-    uv run python scripts/make_stimuli.py syllables.csv stimuli/syllables.csv
+    uv run --group catalog python scripts/make_stimuli.py syllables.csv stimuli/syllables.csv
 """
 
 from __future__ import annotations

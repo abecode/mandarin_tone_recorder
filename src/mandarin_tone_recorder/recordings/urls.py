@@ -9,6 +9,11 @@ app_name = "recordings"
 
 urlpatterns = [
     path("enrollments/<int:enrollment_id>/start/", views.start, name="start"),
+    path(
+        "attempts/<uuid:recording_id>/audio/<str:kind>/",
+        views.download_audio,
+        name="download-audio",
+    ),
     path("sessions/<uuid:public_id>/", views.session_page, name="session"),
     path(
         "sessions/<uuid:public_id>/attempts/accepted/",

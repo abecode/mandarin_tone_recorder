@@ -5,11 +5,13 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from django.contrib.auth.models import Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from mandarin_tone_recorder.accounts.models import User
 from mandarin_tone_recorder.experiments.models import (
     BaseSyllable,
     Enrollment,
@@ -83,6 +85,96 @@ class RecordingViewTests(TestCase):
             reverse("recordings:session", args=(session.public_id,)),
         )
         return session
+
+    def create_audio_attempt(self, *, with_wav: bool = False) -> RecordingAttempt:
+        session = self.start_session()
+        return RecordingAttempt.objects.create(
+            session=session,
+            stimulus=session.current_stimulus,
+            stimulus_index=1,
+            status=RecordingAttempt.Status.ACCEPTED,
+            raw_audio=SimpleUploadedFile("prompt.webm", b"raw audio"),
+            wav_audio=(
+                SimpleUploadedFile("prompt.wav", b"wav audio") if with_wav else ""
+            ),
+        )
+
+    def test_audio_download_requires_staff_with_view_permission(self) -> None:
+        attempt = self.create_audio_attempt(with_wav=True)
+        raw_url = reverse("recordings:download-audio", args=(attempt.recording_id, "raw"))
+        wav_url = reverse("recordings:download-audio", args=(attempt.recording_id, "wav"))
+
+        response = self.client.get(raw_url)
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={raw_url}",
+            fetch_redirect_response=False,
+        )
+
+        user = User.objects.create_user(
+            username="reader", email="reader@example.com", password="password"
+        )
+        self.client.force_login(user)
+        self.assertEqual(self.client.get(raw_url).status_code, 403)
+
+        user.is_staff = True
+        user.save(update_fields=("is_staff",))
+        self.assertEqual(self.client.get(raw_url).status_code, 403)
+
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="recordings",
+                codename="view_recordingattempt",
+            )
+        )
+        self.client.force_login(user)
+        for url, expected in ((raw_url, b"raw audio"), (wav_url, b"wav audio")):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(b"".join(response.streaming_content), expected)
+            self.assertIn("attachment", response["Content-Disposition"])
+            response.close()
+
+    def test_audio_download_hides_missing_attempt_format_and_file(self) -> None:
+        attempt = self.create_audio_attempt()
+        staff = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="password"
+        )
+        self.client.force_login(staff)
+
+        for kind in ("wav", "other"):
+            url = reverse("recordings:download-audio", args=(attempt.recording_id, kind))
+            self.assertEqual(self.client.get(url).status_code, 404)
+
+        attempt.raw_audio.delete(save=False)
+        raw_url = reverse("recordings:download-audio", args=(attempt.recording_id, "raw"))
+        self.assertEqual(self.client.get(raw_url).status_code, 404)
+
+    def test_admin_audio_links_use_protected_endpoint(self) -> None:
+        attempt = self.create_audio_attempt(with_wav=True)
+        staff = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="password"
+        )
+        self.client.force_login(staff)
+
+        response = self.client.get(
+            reverse("admin:recordings_recordingattempt_change", args=(attempt.pk,))
+        )
+
+        self.assertEqual(response.status_code, 200)
+        for kind in ("raw", "wav"):
+            self.assertContains(
+                response,
+                reverse("recordings:download-audio", args=(attempt.recording_id, kind)),
+            )
+        self.assertNotContains(response, "/media/recordings/")
+
+    def test_media_url_is_not_publicly_routed(self) -> None:
+        attempt = self.create_audio_attempt()
+        self.assertEqual(
+            self.client.get(f"/media/{attempt.raw_audio.name}").status_code,
+            404,
+        )
 
     def test_start_and_session_page_render_current_stimulus(self) -> None:
         session = self.start_session()

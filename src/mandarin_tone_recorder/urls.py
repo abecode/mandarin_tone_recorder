@@ -1,7 +1,5 @@
 """Root URL configuration."""
 
-from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -16,6 +14,3 @@ urlpatterns = [
     path("practice/", include("mandarin_tone_recorder.practice.urls")),
     path("recordings/", include("mandarin_tone_recorder.recordings.urls")),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

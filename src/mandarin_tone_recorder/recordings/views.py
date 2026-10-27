@@ -2,14 +2,19 @@
 
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied
 from django.http import (
+    FileResponse,
     HttpRequest,
     HttpResponse,
     HttpResponseBadRequest,
+    Http404,
     JsonResponse,
 )
 from django.shortcuts import redirect, render
@@ -70,6 +75,34 @@ def session_for_participant(
         )
         .first()
     )
+
+
+@login_required
+@require_GET
+def download_audio(
+    request: HttpRequest,
+    recording_id: str,
+    kind: str,
+) -> FileResponse:
+    """Stream a recording only to staff with recording view permission."""
+    if not request.user.is_staff or not request.user.has_perm(
+        "recordings.view_recordingattempt"
+    ):
+        raise PermissionDenied
+    if kind not in ("raw", "wav"):
+        raise Http404("Recording format was not found.")
+
+    attempt = RecordingAttempt.objects.filter(recording_id=recording_id).first()
+    if attempt is None:
+        raise Http404("Recording was not found.")
+    audio = attempt.raw_audio if kind == "raw" else attempt.wav_audio
+    if not audio:
+        raise Http404("Recording format was not found.")
+    try:
+        audio.open("rb")
+    except FileNotFoundError as exc:
+        raise Http404("Recording file was not found.") from exc
+    return FileResponse(audio, as_attachment=True, filename=Path(audio.name).name)
 
 
 def parse_timestamp_ms(value: str | None) -> datetime | None:

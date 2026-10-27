@@ -127,6 +127,7 @@ For a fresh empty installation, skip `migrate-data`, run `deploy`, then run
 creates a server-side SQLite snapshot, checks out the requested commit, runs
 `uv sync --locked --no-group deploy`, `manage.py check --deploy`, migrations,
 and `collectstatic`, then starts Gunicorn and probes its local HTTP endpoint.
+The probe retries briefly while Gunicorn starts.
 The optional `catalog` group is only needed to regenerate the stimulus CSV;
 production does not install pandas or NumPy.
 Fabric prints a labeled status message before each stage; data transfers also

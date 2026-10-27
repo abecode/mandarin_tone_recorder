@@ -190,6 +190,7 @@ def deploy(c, ref="origin/main", domain=""):
         status("deploy", "Probing the local HTTP endpoint")
         c.run(
             f"curl --fail --silent --show-error --max-time 10 "
+            f"--retry 10 --retry-delay 1 --retry-connrefused "
             f"-H {q('Host: ' + domain)} -H {q('X-Forwarded-Proto: https')} "
             f"http://127.0.0.1:8001/ -o /dev/null"
         )

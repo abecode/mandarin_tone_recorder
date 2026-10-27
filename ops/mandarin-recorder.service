@@ -1,0 +1,15 @@
+[Unit]
+Description=Mandarin Tone Recorder (Gunicorn)
+After=network.target
+
+[Service]
+User=mandarin-recorder
+Group=mandarin-recorder
+WorkingDirectory=/srv/mandarin-tone-recorder/app
+EnvironmentFile=/etc/mandarin-tone-recorder/env
+ExecStart=/srv/mandarin-tone-recorder/app/.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8001 mandarin_tone_recorder.wsgi:application
+Restart=on-failure
+UMask=0007
+
+[Install]
+WantedBy=multi-user.target

@@ -161,6 +161,48 @@ an existing unrelated site can keep its own block. Serve `/static/` from
 the scheme Nginx actually received. Caddy's `reverse_proxy` and `file_server`
 can do the equivalent. Never expose the media directory with a public alias.
 
+For the current Nginx host, `ops/nginx/nginx.conf` contains global settings,
+`ops/nginx/emo20q.conf` preserves the legacy site, and
+`ops/nginx/mandarin-tone-recorder-https.conf` serves this app. Install site
+blocks in `/etc/nginx/conf.d/` and test with `sudo nginx -t` before reloading.
+The old `/prodigy/` route remains configured, but its port-8080 backend must
+be running for that route to work. A timestamped copy of the pre-refactor
+main config is kept on the server under `/etc/nginx/nginx.conf.*.bak`.
+
+`mandarin-tone-recorder-http.conf` is only a temporary certificate bootstrap
+site. Once both
+`mantonesarehard.com` and `www.mantonesarehard.com` resolve to the host, issue
+one certificate containing both names with Certbot's webroot plugin:
+
+The EC2 security group must allow inbound TCP 80 from the internet for HTTP-01
+validation and renewals. Keep Gunicorn's port 8001 private on loopback. Before
+requesting a certificate, verify an external HTTP request to the challenge path
+gets a prompt response rather than timing out.
+
+```bash
+sudo certbot certonly --webroot -w /var/www/letsencrypt \
+  -d mantonesarehard.com -d www.mantonesarehard.com
+```
+
+Then replace `/etc/nginx/conf.d/mandarin-tone-recorder.conf` with
+`ops/nginx/mandarin-tone-recorder-https.conf`, run `sudo nginx -t`, and reload
+Nginx. The HTTPS config keeps the challenge path for renewals, redirects `www`
+to the bare domain, serves static files, and proxies the app. It does not
+enable HSTS yet; add a short HSTS policy only after HTTPS works end to end.
+
+On the Amazon Linux host, install the Certbot deploy hook and enable the
+packaged systemd timer. Certbot runs deploy hooks only after a successful
+renewal, so Nginx picks up the new certificate without a manual restart.
+Run these from the server checkout:
+
+```bash
+sudo install -o root -g root -m 0755 ops/certbot/reload-nginx.sh \
+  /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+sudo certbot renew --dry-run --no-random-sleep-on-renew
+sudo systemctl enable --now certbot-renew.timer
+systemctl list-timers --all certbot-renew.timer
+```
+
 A Caddy site can route static assets and application requests like this:
 
 ```caddyfile

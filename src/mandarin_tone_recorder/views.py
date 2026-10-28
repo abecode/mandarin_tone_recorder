@@ -6,4 +6,8 @@ from django.shortcuts import render
 
 def home(request: HttpRequest) -> HttpResponse:
     """Render the initial authenticated application shell."""
-    return render(request, "home.html")
+    return render(
+        request,
+        "home.html",
+        {"participation_code": request.GET.get("code", "")},
+    )

@@ -1,5 +1,7 @@
 """Tests for anonymous consent and experiment routing."""
 
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 
@@ -14,6 +16,7 @@ from mandarin_tone_recorder.participants.models import (
     ParticipantLanguage,
     ParticipantProfile,
     ParticipantProfileSnapshot,
+    ParticipationCode,
 )
 from mandarin_tone_recorder.participants.services import (
     PARTICIPANT_SESSION_KEY,
@@ -58,6 +61,7 @@ class ParticipantFlowTests(TestCase):
         participant = self.consent()
 
         self.assertIsNone(participant.user)
+        self.assertIsNone(participant.participation_code)
         self.assertTrue(
             Consent.objects.filter(
                 participant=participant,
@@ -89,6 +93,92 @@ class ParticipantFlowTests(TestCase):
 
         self.assertContains(response, "Hugging Face")
         self.assertContains(response, "self-hosted")
+
+    def test_home_link_carries_participation_code_to_consent(self) -> None:
+        response = self.client.get(f"{reverse('home')}?code=CLASS_2026")
+
+        self.assertContains(
+            response,
+            f'href="{reverse("participants:consent")}?code=CLASS_2026"',
+        )
+
+    def test_consent_prefills_code_from_query_string(self) -> None:
+        response = self.client.get(
+            f"{reverse('participants:consent')}?code=CLASS_2026"
+        )
+
+        self.assertEqual(
+            response.context["form"]["participation_code"].value(),
+            "CLASS_2026",
+        )
+
+    def test_consent_saves_valid_participation_code(self) -> None:
+        code = ParticipationCode.objects.create(
+            code="Class_2026",
+            label="Mandarin class 2026",
+        )
+
+        response = self.client.post(
+            reverse("participants:consent"),
+            {"participation_code": "cLaSs_2026", "consent": "on"},
+        )
+
+        self.assertRedirects(response, reverse("participants:mandarin-knowledge"))
+        self.assertEqual(Participant.objects.get().participation_code, code)
+
+    def test_codes_differing_only_by_case_cannot_be_created(self) -> None:
+        code = ParticipationCode(code="Class_2026", label="First")
+        code.full_clean()
+        code.save()
+
+        duplicate = ParticipationCode(code="CLASS_2026", label="Duplicate")
+        with self.assertRaisesMessage(
+            ValidationError, "A code with this spelling already exists"
+        ):
+            duplicate.full_clean()
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            duplicate.save()
+
+    def test_invalid_code_does_not_create_participant(self) -> None:
+        response = self.client.post(
+            reverse("participants:consent"),
+            {"participation_code": "UNKNOWN", "consent": "on"},
+        )
+
+        self.assertContains(response, "Code not recognized")
+        self.assertFalse(Participant.objects.exists())
+        self.assertFalse(Consent.objects.exists())
+
+    def test_inactive_code_is_rejected(self) -> None:
+        ParticipationCode.objects.create(
+            code="RETIRED",
+            label="Retired recruitment group",
+            is_active=False,
+        )
+
+        response = self.client.post(
+            reverse("participants:consent"),
+            {"participation_code": "RETIRED", "consent": "on"},
+        )
+
+        self.assertContains(response, "Code not recognized")
+        self.assertFalse(Participant.objects.exists())
+
+    def test_existing_participant_code_is_not_replaced(self) -> None:
+        original_code = ParticipationCode.objects.create(
+            code="ORIGINAL", label="Original group"
+        )
+        ParticipationCode.objects.create(code="LATER", label="Later group")
+        self.client.post(
+            reverse("participants:consent"),
+            {"participation_code": "ORIGINAL", "consent": "on"},
+        )
+
+        response = self.client.get(f"{reverse('participants:consent')}?code=LATER")
+
+        self.assertRedirects(response, reverse("participants:mandarin-knowledge"))
+        self.assertEqual(Participant.objects.get().participation_code, original_code)
 
     def test_participant_without_mandarin_is_routed_to_non_tone_experiment(
         self,

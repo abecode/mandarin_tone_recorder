@@ -174,7 +174,8 @@ select {
   margin: 0;
 }
 
-.auth-panel input {
+.auth-panel input,
+.participation-code-field input {
   width: 100%;
   padding: 0.7rem 0.8rem;
   border: 1px solid #aeb8c7;
@@ -217,6 +218,12 @@ button {
 
 .study-form {
   margin-top: 1.5rem;
+}
+
+.participation-code-field {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
 }
 
 .study-form fieldset {

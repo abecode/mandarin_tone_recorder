@@ -34,6 +34,14 @@ Run the development server:
 uv run python manage.py runserver
 ```
 
+## Participation codes
+
+Create participation codes in Django admin before sharing invitation links such
+as `https://mantonesarehard.com/?code=CLASS_2026`. The code is optional on the
+consent page. A valid code is saved on the participant created at consent;
+deactivating a code prevents new participants from using it without changing
+existing participants.
+
 ## Planning/Todos
 
 ### Annotatation

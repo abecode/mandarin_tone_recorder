@@ -8,10 +8,22 @@ from mandarin_tone_recorder.participants.models import (
     ParticipantLanguage,
     ParticipantProfile,
     ParticipantProfileSnapshot,
+    ParticipationCode,
 )
 
 
-admin.site.register(Participant)
+@admin.register(ParticipationCode)
+class ParticipationCodeAdmin(admin.ModelAdmin):
+    list_display = ("code", "label", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("code", "label")
+
+
+@admin.register(Participant)
+class ParticipantAdmin(admin.ModelAdmin):
+    list_display = ("public_id", "user", "participation_code", "created_at")
+    list_filter = ("participation_code",)
+    search_fields = ("public_id", "user__username")
 
 
 class ParticipantLanguageInline(admin.TabularInline):

@@ -61,10 +61,14 @@ def consent(request: HttpRequest) -> HttpResponse:
     ).exists():
         return redirect("participants:mandarin-knowledge")
 
-    form = ConsentForm(request.POST if request.method == "POST" else None)
+    form = ConsentForm(
+        request.POST if request.method == "POST" else None,
+        initial={"participation_code": request.GET.get("code", "")},
+    )
     if request.method == "POST" and form.is_valid():
         participant = Participant.objects.create(
-            user=request.user if request.user.is_authenticated else None
+            user=request.user if request.user.is_authenticated else None,
+            participation_code=form.cleaned_data["participation_code"],
         )
         Consent.objects.create(
             participant=participant,

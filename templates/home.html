@@ -14,7 +14,7 @@
       {% include "participants/_data_use_disclosure.html" %}
     </div>
     <div class="home-primary-actions">
-      <a class="primary-action" href="{% url 'participants:consent' %}">
+      <a class="primary-action" href="{% url 'participants:consent' %}{% if participation_code %}?code={{ participation_code|urlencode }}{% endif %}">
         Participate in Experiment
       </a>
     </div>

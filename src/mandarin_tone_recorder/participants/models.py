@@ -3,7 +3,9 @@
 import uuid
 
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.functions import Lower
 
 
 NATIVE_LANGUAGE_CHOICES = (
@@ -41,6 +43,34 @@ NATIVE_LANGUAGE_LABELS = {
 }
 
 
+class ParticipationCode(models.Model):
+    """An optional recruitment code assigned to new participants."""
+
+    code = models.CharField(
+        max_length=32,
+        validators=[
+            RegexValidator(
+                r"^[A-Za-z0-9_-]+$",
+                "Use letters, numbers, underscores, or hyphens.",
+            )
+        ],
+    )
+    label = models.CharField(max_length=120)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("code"),
+                name="uniq_participation_code_nocase",
+                violation_error_message="A code with this spelling already exists.",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.code
+
+
 class Participant(models.Model):
     """A study participant who may remain anonymous or later claim an account."""
 
@@ -50,6 +80,13 @@ class Participant(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+        related_name="participants",
+    )
+    participation_code = models.ForeignKey(
+        ParticipationCode,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
         related_name="participants",
     )
     created_at = models.DateTimeField(auto_now_add=True)

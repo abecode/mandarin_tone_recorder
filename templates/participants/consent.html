@@ -20,6 +20,11 @@
     <form method="post" class="study-form">
       {% csrf_token %}
       {{ form.non_field_errors }}
+      <div class="participation-code-field">
+        <label for="{{ form.participation_code.id_for_label }}">{{ form.participation_code.label }}</label>
+        {{ form.participation_code.errors }}
+        {{ form.participation_code }}
+      </div>
       <fieldset>
         <legend>Consent</legend>
         {{ form.consent.errors }}

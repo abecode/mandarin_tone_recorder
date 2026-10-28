@@ -6,12 +6,19 @@ from mandarin_tone_recorder.participants.models import (
     NATIVE_LANGUAGE_CHOICES,
     ParticipantLanguage,
     ParticipantProfile,
+    ParticipationCode,
 )
 
 
 class ConsentForm(forms.Form):
     """Capture consent and optional broader recording-sharing permission."""
 
+    participation_code = forms.CharField(
+        label="Participation code (optional)",
+        max_length=32,
+        required=False,
+        strip=True,
+    )
     consent = forms.BooleanField(
         label="I agree to participate in this experiment.",
         required=True,
@@ -23,6 +30,20 @@ class ConsentForm(forms.Form):
         ),
         required=False,
     )
+
+    def clean_participation_code(self) -> ParticipationCode | None:
+        code = self.cleaned_data["participation_code"]
+        if not code:
+            return None
+        participation_code = ParticipationCode.objects.filter(
+            code__iexact=code,
+            is_active=True,
+        ).first()
+        if participation_code is None:
+            raise forms.ValidationError(
+                "Code not recognized. Check it or leave this field blank."
+            )
+        return participation_code
 
 
 class MandarinKnowledgeForm(forms.Form):

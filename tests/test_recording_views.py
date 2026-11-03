@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -191,7 +192,7 @@ class RecordingViewTests(TestCase):
         )
         self.assertContains(response, session.current_stimulus.stable_id)
         self.assertContains(response, "recorder-config")
-        self.assertContains(response, "recorder.js?v=20260614-2")
+        self.assertContains(response, f"recorder.js?v={settings.RECORDER_ASSET_VERSION}")
         self.assertContains(response, "Session target")
         self.assertContains(response, "Base syllables")
         self.assertContains(response, "Syllable-tone items")
@@ -279,6 +280,29 @@ class RecordingViewTests(TestCase):
         self.assertTrue(attempt.raw_audio.name.endswith(".webm"))
         session.refresh_from_db()
         self.assertEqual(session.current_stimulus_index, 2)
+
+    def test_accepted_upload_preserves_non_webm_extensions(self) -> None:
+        session = self.start_session()
+        for extension, mime_type in (("ogg", "audio/ogg;codecs=opus"), ("mp4", "audio/mp4")):
+            with self.subTest(extension=extension):
+                session.refresh_from_db()
+                response = self.client.post(
+                    reverse("recordings:accepted-attempt", args=(session.public_id,)),
+                    {
+                        "audio": SimpleUploadedFile(
+                            f"prompt.{extension}",
+                            b"audio bytes",
+                            content_type=mime_type,
+                        ),
+                        "stimulus_id": session.current_stimulus.stable_id,
+                        "duration_seconds": "1.25",
+                        "mime_type": mime_type,
+                    },
+                )
+                self.assertEqual(response.status_code, 200)
+                attempt = RecordingAttempt.objects.filter(session=session).latest("id")
+                self.assertTrue(attempt.raw_audio.name.endswith(f".{extension}"))
+                self.assertEqual(attempt.mime_type, mime_type)
 
     def test_retry_endpoint_keeps_the_same_stimulus(self) -> None:
         session = self.start_session()

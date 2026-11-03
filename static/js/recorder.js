@@ -177,6 +177,20 @@ if (root && configElement) {
     return options.find((type) => MediaRecorder.isTypeSupported(type)) || "";
   }
 
+  function extensionForMimeType(mimeType) {
+    const mediaType = mimeType.split(";", 1)[0].trim().toLowerCase();
+    const extensions = {
+      "audio/webm": "webm",
+      "audio/ogg": "ogg",
+      "audio/mp4": "mp4",
+    };
+    const extension = extensions[mediaType];
+    if (!extension) {
+      throw new Error("This browser's recording format is not supported for upload.");
+    }
+    return extension;
+  }
+
   async function ensureMicrophone() {
     if (stream && stream.active) {
       return;
@@ -231,7 +245,7 @@ if (root && configElement) {
       activeRecorder.onerror = () => reject(new Error("The browser could not finish the recording."));
       activeRecorder.onstop = () => {
         const blob = new Blob(chunks, {
-          type: activeRecorder.mimeType || "audio/webm",
+          type: activeRecorder.mimeType || chunks[0]?.type || "",
         });
         recorder = null;
         chunks = [];
@@ -257,7 +271,7 @@ if (root && configElement) {
       elements.status.textContent = "Saving...";
 
       const form = new FormData();
-      form.append("audio", blob, `prompt-${currentIndex}.webm`);
+      form.append("audio", blob, `prompt-${currentIndex}.${extensionForMimeType(blob.type)}`);
       form.append("stimulus_id", currentStimulus.stable_id);
       form.append("duration_seconds", String((endedAt - segmentStartedAt) / 1000));
       form.append("started_at_ms", String(segmentStartedAt));

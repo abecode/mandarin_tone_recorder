@@ -334,8 +334,9 @@ def app_report(c, hours=24, max_lines=20, show_ips=False):
         warn=True,
     )
     status("app-report", "Nginx traffic signals and errors")
-    c.sudo(
-        f"cd {q(APP_DIR)} && .venv/bin/python -m ops.traffic_report "
-        f"--hours {hours} --max-lines {max_lines}"
+    traffic_script = (
+        f"cd {q(APP_DIR)} && exec {q(APP_DIR + '/.venv/bin/python')} "
+        f"-m ops.traffic_report --hours {hours} --max-lines {max_lines}"
         + (" --show-ips" if show_ips else "")
     )
+    c.sudo(f"sh -c {q(traffic_script)}")

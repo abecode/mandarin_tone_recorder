@@ -187,6 +187,9 @@ Signals are heuristics for review, not grounds to discard a participant's data.
 `app-report` runs `ops.app_report` and `ops.traffic_report` from the server
 checkout. Commit and push those helpers, then deploy the commit before using
 the task; running a newer local `fabfile.py` alone does not install them.
+Production counts describe the production database only. They do not establish
+whether every row in a development database was copied to production; compare
+record IDs or a database snapshot separately if that matters.
 
 `mandarin-tone-recorder-http.conf` is only a temporary certificate bootstrap
 site. Once both

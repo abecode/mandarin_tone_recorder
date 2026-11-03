@@ -165,9 +165,28 @@ For the current Nginx host, `ops/nginx/nginx.conf` contains global settings,
 `ops/nginx/emo20q.conf` preserves the legacy site, and
 `ops/nginx/mandarin-tone-recorder-https.conf` serves this app. Install site
 blocks in `/etc/nginx/conf.d/` and test with `sudo nginx -t` before reloading.
+The shared access log includes `$host` at the start of each new line so reports
+can distinguish the two sites; older lines retain the previous format. Deploying
+the Django app does not install Nginx configuration changes. Back up the server's
+`/etc/nginx/nginx.conf`, install the updated `ops/nginx/nginx.conf`, then run
+`sudo nginx -t` and reload Nginx separately.
 The old `/prodigy/` route remains configured, but its port-8080 backend must
 be running for that route to work. A timestamped copy of the pre-refactor
 main config is kept on the server under `/etc/nginx/nginx.conf.*.bak`.
+
+For read-only production checks, run `.venv/bin/fab -H HOST server-status` for
+service state, disk/inode usage, memory, and the newest database backup. Run
+`.venv/bin/fab -H HOST app-report` for database counts, recent Gunicorn/Django
+warnings, Nginx errors, and traffic signals. `app-report --hours 48 --max-lines
+30` changes the default 24-hour window and 20-line limit; `--show-ips` explicitly
+includes source IP addresses in anomaly results. The traffic report reads the
+current shared access log, filters new-format lines by host, and scans at most
+its last 100,000 lines. Old-format lines and rotated logs are excluded. Nginx
+errors come from the shared log, so they may include errors from the old site.
+Signals are heuristics for review, not grounds to discard a participant's data.
+`app-report` runs `ops.app_report` and `ops.traffic_report` from the server
+checkout. Commit and push those helpers, then deploy the commit before using
+the task; running a newer local `fabfile.py` alone does not install them.
 
 `mandarin-tone-recorder-http.conf` is only a temporary certificate bootstrap
 site. Once both

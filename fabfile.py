@@ -275,3 +275,67 @@ def verify_data(c):
     )
     c.sudo(f"sh -c {q(script)}", user=SERVICE)
     status("verify-data", "Complete")
+
+
+def report_options(hours: int, max_lines: int) -> None:
+    if not 1 <= hours <= 168:
+        raise ValueError("--hours must be between 1 and 168.")
+    if not 1 <= max_lines <= 100:
+        raise ValueError("--max-lines must be between 1 and 100.")
+
+
+@task
+def server_status(c):
+    """Show host health and service state without changing the server."""
+    status("server-status", "Service state")
+    c.run(
+        f"systemctl show {SERVICE} nginx "
+        "--property=Id,ActiveState,SubState,NRestarts,ExecMainStartTimestamp "
+        "--no-pager",
+        warn=True,
+    )
+    status("server-status", "Disk and inode usage")
+    c.run(f"df -h {q(APP_DIR)} {q(DATA_DIR)}")
+    c.run(f"df -i {q(APP_DIR)} {q(DATA_DIR)}")
+    status("server-status", "Memory and swap")
+    c.run("free -h")
+    status("server-status", "Latest database backup")
+    backup_script = (
+        "from pathlib import Path; from datetime import datetime, timezone; "
+        f"files = Path({BACKUP_DIR!r}).glob('*.sqlite3'); "
+        "latest = max(files, key=lambda p: p.stat().st_mtime, default=None); "
+        "print('None found' if latest is None else "
+        "f'{latest.name}: {(datetime.now(timezone.utc).timestamp() - latest.stat().st_mtime) / 3600:.1f} hours old')"
+    )
+    c.sudo(f"python3 -c {q(backup_script)}", user=SERVICE)
+
+
+@task
+def app_report(c, hours=24, max_lines=20, show_ips=False):
+    """Show read-only application counts, bounded logs and traffic signals."""
+    report_options(hours, max_lines)
+    for module in ("app_report.py", "traffic_report.py"):
+        remote_file = f"{APP_DIR}/ops/{module}"
+        if not c.run(f"test -f {q(remote_file)}", warn=True, hide=True).ok:
+            raise RuntimeError(
+                f"{remote_file} is missing on the server. Commit and push the "
+                "ops report helpers, then deploy that commit before running app-report."
+            )
+    status("app-report", "Database counts")
+    script = (
+        f"set -a; . {q(ENV_FILE)}; set +a; "
+        f"cd {q(APP_DIR)}; exec .venv/bin/python -m ops.app_report --hours {hours}"
+    )
+    c.sudo(f"sh -c {q(script)}", user=SERVICE)
+    status("app-report", "Gunicorn and Django warnings/errors")
+    c.sudo(
+        f"journalctl -u {SERVICE} --since {q(f'{hours} hours ago')} "
+        f"-p warning --no-pager -n {max_lines} -o short-iso",
+        warn=True,
+    )
+    status("app-report", "Nginx traffic signals and errors")
+    c.sudo(
+        f"cd {q(APP_DIR)} && .venv/bin/python -m ops.traffic_report "
+        f"--hours {hours} --max-lines {max_lines}"
+        + (" --show-ips" if show_ips else "")
+    )
